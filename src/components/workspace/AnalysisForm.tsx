@@ -16,7 +16,7 @@ export default function AnalysisForm({ onAnalysisComplete }: AnalysisFormProps) 
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const API_BASE = 'http://localhost:8000';
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

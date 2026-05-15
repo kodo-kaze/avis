@@ -21,7 +21,7 @@ interface ResultsViewProps {
 
 export default function ResultsView({ data, onReset }: ResultsViewProps) {
   const { summary, sentiment_distribution, sentiments, topics, keywords, wordcloud_url } = data;
-  const API_BASE = 'http://localhost:8000';
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000';
 
   return (
     <motion.div
