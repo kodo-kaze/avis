@@ -22,12 +22,14 @@ async def discover_topics(comments: List[str]) -> List[Dict[str, Any]]:
                 headers=HEADERS, 
                 json={
                     "inputs": prompt,
-                    "parameters": {"max_new_tokens": 50, "return_full_text": False}
+                    "parameters": {"max_new_tokens": 50, "return_full_text": False},
+                    "options": {"wait_for_model": True}
                 },
-                timeout=30.0
+                timeout=60.0
             )
             
             if response.status_code != 200:
+                print(f"Topics API Error ({response.status_code}): {response.text}")
                 return [{"topic": "General Feedback", "count": len(comments)}]
                 
             result = response.json()

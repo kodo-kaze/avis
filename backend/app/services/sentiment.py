@@ -25,12 +25,15 @@ async def analyze_sentiment(comments: List[str]) -> List[Dict[str, Any]]:
             response = await client.post(
                 API_URL, 
                 headers=HEADERS, 
-                json={"inputs": comments},
-                timeout=30.0
+                json={
+                    "inputs": comments,
+                    "options": {"wait_for_model": True}
+                },
+                timeout=60.0
             )
             
             if response.status_code != 200:
-                print(f"Sentiment API Error: {response.text}")
+                print(f"Sentiment API Error ({response.status_code}): {response.text}")
                 return []
                 
             results = response.json()

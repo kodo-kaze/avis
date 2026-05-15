@@ -25,13 +25,16 @@ async def generate_summary(comments: List[str]) -> str:
                 headers=HEADERS, 
                 json={
                     "inputs": combined_text,
-                    "parameters": {"max_length": 130, "min_length": 30}
+                    "parameters": {"max_length": 130, "min_length": 30},
+                    "options": {"wait_for_model": True}
                 },
-                timeout=45.0
+                timeout=60.0
             )
             
             if response.status_code != 200:
-                print(f"Summary API Error: {response.text}")
+                print(f"Summary API Error ({response.status_code}): {response.text}")
+                if response.status_code == 503:
+                    return "AI model is currently waking up. Please try again in a few seconds."
                 return "Could not generate summary at this time."
                 
             result = response.json()
