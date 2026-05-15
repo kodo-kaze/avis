@@ -1,5 +1,4 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 /.pnp
@@ -51,3 +50,6 @@ backend/.venv/
 backend/generated/*.png
 backend/uploads/*
 !backend/uploads/.gitkeep
+
+GEMINI.md
+AGENTS.md

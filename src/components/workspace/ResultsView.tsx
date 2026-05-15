@@ -46,7 +46,7 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
         {/* Left Column: Summary & Sentiment */}
         <div className="lg:col-span-2 space-y-6">
           {/* AI Summary */}
-          <section className="bg-white/5 border border-white/10 rounded-3xl p-8">
+          <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6 text-white/60">
               <MessageSquare size={20} />
               <h3 className="font-bold uppercase tracking-widest text-sm">AI Executive Summary</h3>
@@ -57,7 +57,7 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
           </section>
 
           {/* Sentiment Distribution */}
-          <section className="bg-white/5 border border-white/10 rounded-3xl p-8">
+          <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-8 text-white/60">
               <BarChart3 size={20} />
               <h3 className="font-bold uppercase tracking-widest text-sm">Sentiment Intelligence</h3>
@@ -104,7 +104,7 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
 
             <div className="space-y-3 max-h-60 overflow-y-auto pr-4 no-scrollbar">
               {sentiments.map((s: any, i: number) => (
-                <div key={i} className="flex gap-4 p-4 bg-white/5 rounded-xl border border-white/5 text-sm">
+                <div key={i} className="flex gap-4 p-4 bg-white/5 backdrop-blur-md rounded-xl border border-white/5 text-sm">
                    <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${
                      s.label === 'POSITIVE' ? 'bg-emerald-500' : 
                      s.label === 'NEGATIVE' ? 'bg-rose-500' : 'bg-blue-500'
@@ -119,7 +119,7 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
         {/* Right Column: Topics, Keywords, Wordcloud */}
         <div className="space-y-6">
           {/* Discovery: Topics */}
-          <section className="bg-white/5 border border-white/10 rounded-3xl p-8">
+          <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6 text-white/60">
               <Layers size={20} />
               <h3 className="font-bold uppercase tracking-widest text-sm">Discovered Topics</h3>
@@ -145,14 +145,14 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
           </section>
 
           {/* Keywords */}
-          <section className="bg-white/5 border border-white/10 rounded-3xl p-8">
+          <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6 text-white/60">
               <Hash size={20} />
               <h3 className="font-bold uppercase tracking-widest text-sm">Key Themes</h3>
             </div>
             <div className="flex flex-wrap gap-2">
               {keywords.map((kw: string, i: number) => (
-                <span key={i} className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-white/80 border border-white/5">
+                <span key={i} className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-xs font-bold text-white/80 border border-white/5">
                   {kw}
                 </span>
               ))}
@@ -161,12 +161,12 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
 
           {/* WordCloud */}
           {wordcloud_url && (
-            <section className="bg-white/5 border border-white/10 rounded-3xl p-8">
+            <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
               <div className="flex items-center gap-3 mb-6 text-white/60">
                 <ImageIcon size={20} />
                 <h3 className="font-bold uppercase tracking-widest text-sm">Visual Synthesis</h3>
               </div>
-              <div className="rounded-2xl overflow-hidden bg-white/10 aspect-video flex items-center justify-center">
+              <div className="rounded-2xl overflow-hidden bg-black/20 backdrop-blur-md aspect-video flex items-center justify-center">
                 <img 
                   src={wordcloud_url} 
                   alt="Word Cloud" 

@@ -117,14 +117,30 @@ const LiquidChrome: React.FC<LiquidChromeProps> = ({
     const mesh = new Mesh(gl, { geometry, program });
 
     // 4. Resize Handling
-    function resize() {
+    const resizeObserver = new ResizeObserver(() => {
       if (!container) return;
       const { width, height } = container.getBoundingClientRect();
       renderer.setSize(width, height);
       program.uniforms.uResolution.value.set(width, height);
+      if (gl.canvas) {
+        gl.canvas.style.setProperty("width", "100%", "important");
+        gl.canvas.style.setProperty("height", "100%", "important");
+      }
+    });
+    resizeObserver.observe(container);
+
+    function handleWindowResize() {
+      if (!container) return;
+      const { width, height } = container.getBoundingClientRect();
+      renderer.setSize(width, height);
+      program.uniforms.uResolution.value.set(width, height);
+      if (gl.canvas) {
+        gl.canvas.style.setProperty("width", "100%", "important");
+        gl.canvas.style.setProperty("height", "100%", "important");
+      }
     }
-    window.addEventListener("resize", resize);
-    resize();
+    window.addEventListener("resize", handleWindowResize);
+    handleWindowResize();
 
     // 5. Interaction Logic (Velocity Tracking)
     let lastMouse = { x: 0, y: 0 };
@@ -174,10 +190,17 @@ const LiquidChrome: React.FC<LiquidChromeProps> = ({
     animationId = requestAnimationFrame(update);
 
     container.appendChild(gl.canvas);
+    gl.canvas.style.position = "absolute";
+    gl.canvas.style.top = "0";
+    gl.canvas.style.left = "0";
+    gl.canvas.style.setProperty("width", "100%", "important");
+    gl.canvas.style.setProperty("height", "100%", "important");
+    gl.canvas.style.display = "block";
 
     return () => {
       cancelAnimationFrame(animationId);
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", handleWindowResize);
+      resizeObserver.disconnect();
       if (interactive) {
         container.removeEventListener("mousemove", handleMouseMove);
       }
@@ -187,14 +210,14 @@ const LiquidChrome: React.FC<LiquidChromeProps> = ({
     };
   }, [baseColor, speed, interactive]);
 
-  return <div ref={containerRef} className="w-full h-full" {...props} />;
+  return <div ref={containerRef} className="w-full h-full relative" {...props} />;
 };
 
 import { HomeNavigation } from "@/components/HomeNavigation";
 
 export default function LiquidChromeHero() {
   return (
-    <main className="relative w-full h-screen bg-black overflow-hidden font-sans">
+    <div className="relative w-full h-screen bg-black overflow-hidden font-sans">
       {/* BACKGROUND: The Liquid Chrome Component */}
       <div className="absolute inset-0 z-0">
         <LiquidChrome
@@ -253,7 +276,6 @@ export default function LiquidChromeHero() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
-

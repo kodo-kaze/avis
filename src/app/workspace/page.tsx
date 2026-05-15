@@ -33,7 +33,7 @@ export default function WorkspacePage() {
         <header className="w-full px-12 py-10 flex justify-between items-center bg-gradient-to-b from-black/80 via-black/40 to-transparent">
           <div className="flex items-center gap-8">
              <Link href="/" className="group flex items-center gap-3 text-white/50 hover:text-white transition-all">
-                <div className="p-2 rounded-full bg-white/5 border border-white/10 group-hover:bg-white group-hover:text-black transition-all">
+                <div className="p-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10 group-hover:bg-white group-hover:text-black transition-all">
                   <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                 </div>
                 <span className="text-[10px] font-black uppercase tracking-[0.4em]">AVIS ENGINE</span>
