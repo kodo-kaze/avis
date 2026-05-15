@@ -14,14 +14,16 @@ import {
   Frown
 } from 'lucide-react';
 
+import Image from 'next/image';
+import { AnalysisResult, SentimentItem, TopicItem } from '@/lib/types';
+
 interface ResultsViewProps {
-  data: any;
+  data: AnalysisResult;
   onReset: () => void;
 }
 
 export default function ResultsView({ data, onReset }: ResultsViewProps) {
   const { summary, sentiment_distribution, sentiments, topics, keywords, wordcloud_url } = data;
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000';
 
   return (
     <motion.div
@@ -52,7 +54,7 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
               <h3 className="font-bold uppercase tracking-widest text-sm">AI Executive Summary</h3>
             </div>
             <p className="text-xl leading-relaxed text-neutral-200 font-medium">
-              "{summary}"
+              &quot;{summary}&quot;
             </p>
           </section>
 
@@ -103,13 +105,13 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
             </div>
 
             <div className="space-y-3 max-h-60 overflow-y-auto pr-4 no-scrollbar">
-              {sentiments.map((s: any, i: number) => (
+              {sentiments.map((s: SentimentItem, i: number) => (
                 <div key={i} className="flex gap-4 p-4 bg-white/5 backdrop-blur-md rounded-xl border border-white/5 text-sm">
                    <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${
                      s.label === 'POSITIVE' ? 'bg-emerald-500' : 
                      s.label === 'NEGATIVE' ? 'bg-rose-500' : 'bg-blue-500'
                    }`} />
-                   <p className="text-white/70 italic">"{s.comment}"</p>
+                   <p className="text-white/70 italic">&quot;{s.comment}&quot;</p>
                 </div>
               ))}
             </div>
@@ -125,7 +127,7 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
               <h3 className="font-bold uppercase tracking-widest text-sm">Discovered Topics</h3>
             </div>
             <div className="space-y-4">
-              {topics.map((t: any, i: number) => (
+              {topics.map((t: TopicItem, i: number) => (
                 <div key={i} className="group">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-medium text-white/80">{t.topic}</span>
@@ -167,10 +169,13 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
                 <h3 className="font-bold uppercase tracking-widest text-sm">Visual Synthesis</h3>
               </div>
               <div className="rounded-2xl overflow-hidden bg-black/20 backdrop-blur-md aspect-video flex items-center justify-center">
-                <img 
+                <Image 
                   src={wordcloud_url} 
                   alt="Word Cloud" 
+                  width={400}
+                  height={225}
                   className="w-full h-full object-contain mix-blend-screen opacity-80"
+                  unoptimized
                 />
               </div>
             </section>

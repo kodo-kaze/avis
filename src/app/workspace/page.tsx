@@ -9,10 +9,12 @@ import Link from 'next/link';
 import { UserButton } from '@clerk/nextjs';
 import { LayoutDashboard, ArrowLeft } from 'lucide-react';
 
-export default function WorkspacePage() {
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
+import { AnalysisResult } from '@/lib/types';
 
-  const handleAnalysisComplete = (data: any) => {
+export default function WorkspacePage() {
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+
+  const handleAnalysisComplete = (data: AnalysisResult) => {
     setAnalysisResult(data);
   };
 

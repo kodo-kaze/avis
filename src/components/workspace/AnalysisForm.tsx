@@ -4,8 +4,10 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, FileText, Send, Loader2, X } from 'lucide-react';
 
+import { AnalysisResult } from '@/lib/types';
+
 interface AnalysisFormProps {
-  onAnalysisComplete: (data: any) => void;
+  onAnalysisComplete: (data: AnalysisResult) => void;
 }
 
 export default function AnalysisForm({ onAnalysisComplete }: AnalysisFormProps) {
@@ -56,8 +58,8 @@ export default function AnalysisForm({ onAnalysisComplete }: AnalysisFormProps) 
 
       const data = await response.json();
       onAnalysisComplete(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Analysis failed.');
     } finally {
       setLoading(false);
     }
