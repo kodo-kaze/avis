@@ -1,4 +1,6 @@
 from wordcloud import WordCloud
+import matplotlib
+matplotlib.use('Agg') # Required for serverless/non-interactive environments
 import matplotlib.pyplot as plt
 import os
 import uuid
