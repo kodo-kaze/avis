@@ -11,9 +11,14 @@ app = FastAPI(
 )
 
 # CORS configuration for frontend integration
+origins = [
+    "https://avis-hq.vercel.app",
+    "http://localhost:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict to frontend URL
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
