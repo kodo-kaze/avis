@@ -45,7 +45,7 @@ export default function WorkspacePage() {
              </div>
           </div>
           <div className="p-1.5 bg-white/5 border border-white/10 rounded-full backdrop-blur-md">
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
           </div>
         </header>
 

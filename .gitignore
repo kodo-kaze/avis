@@ -41,3 +41,13 @@ yarn-error.log*
 next-env.d.ts
 .venv
 venv
+
+# Python
+backend/venv/
+backend/.venv/
+**/__pycache__/
+*.py[cod]
+*.class
+backend/generated/*.png
+backend/uploads/*
+!backend/uploads/.gitkeep
