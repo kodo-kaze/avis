@@ -1,0 +1,34 @@
+[
+  {
+    "comment": "The mobile app crashes frequently after the last update.",
+    "priority": "High"
+  },
+  {
+    "comment": "Integration with Slack is a game changer for our workflow.",
+    "priority": "Low"
+  },
+  {
+    "comment": "The search functionality is a bit slow but accurate.",
+    "priority": "Medium"
+  },
+  {
+    "comment": "Invoices are easy to download and understand.",
+    "priority": "Low"
+  },
+  {
+    "comment": "I wish there was a way to export data directly to Excel.",
+    "priority": "Medium"
+  },
+  {
+    "comment": "The onboarding process was smooth and helpful.",
+    "priority": "Low"
+  },
+  {
+    "comment": "Setting up custom alerts is confusing for new users.",
+    "priority": "High"
+  },
+  {
+    "comment": "The API documentation is world-class.",
+    "priority": "Low"
+  }
+]
