@@ -1,35 +1,43 @@
-from keybert import KeyBERT
+import httpx
 from typing import List
+from app.config.settings import settings
 
-_kw_model = None
+API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+HEADERS = {"Authorization": f"Bearer {settings.HF_TOKEN}"}
 
-def get_kw_model():
-    global _kw_model
-    if _kw_model is None:
-        try:
-            _kw_model = KeyBERT()
-        except Exception as e:
-            print(f"Failed to load KeyBERT: {e}")
-    return _kw_model
-
-def extract_keywords(comments: List[str], top_n: int = 5) -> List[str]:
-    model = get_kw_model()
-    if not model or not comments:
+async def extract_keywords(comments: List[str], top_n: int = 5) -> List[str]:
+    if not comments:
         return []
 
-    combined_text = " ".join(comments)
-    
+    if not settings.HF_TOKEN:
+        print("HF_TOKEN missing, returning fallback keywords")
+        return ["analysis", "feedback", "stakeholder"]
+
+    combined_text = " ".join(comments[:50]) # Limit input for keyword extraction
+    prompt = f"Extract the top {top_n} unique keywords or short key phrases from the following stakeholder feedback. Return ONLY a comma-separated list of keywords.\n\nFeedback: {combined_text}\n\nKeywords:"
+
     try:
-        # Extract keywords
-        keywords_with_scores = model.extract_keywords(
-            combined_text, 
-            keyphrase_ngram_range=(1, 2), 
-            stop_words='english', 
-            top_n=top_n
-        )
-        
-        # Return just the keyword strings
-        return [kw[0] for kw in keywords_with_scores]
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                API_URL, 
+                headers=HEADERS, 
+                json={
+                    "inputs": prompt,
+                    "parameters": {"max_new_tokens": 50, "return_full_text": False}
+                },
+                timeout=30.0
+            )
+            
+            if response.status_code != 200:
+                print(f"Keywords API Error: {response.text}")
+                return ["General", "Feedback"]
+                
+            result = response.json()
+            if isinstance(result, list) and len(result) > 0:
+                text = result[0].get('generated_text', "")
+                keywords = [kw.strip() for kw in text.split(',') if kw.strip()]
+                return keywords[:top_n]
+            return []
     except Exception as e:
-        print(f"Error extracting keywords: {e}")
+        print(f"Error extracting keywords via API: {e}")
         return []

@@ -1,3 +1,4 @@
+import asyncio
 from typing import List
 from app.schemas.response_schema import AnalysisResponse
 from app.services.sentiment import analyze_sentiment, calculate_sentiment_distribution
@@ -6,13 +7,12 @@ from app.services.keywords import extract_keywords
 from app.services.topics import discover_topics
 from app.services.wordcloud_service import generate_wordcloud
 
-def process_feedback(comments: List[str]) -> AnalysisResponse:
+async def process_feedback(comments: List[str]) -> AnalysisResponse:
     """
     Central orchestrator that runs all AI pipelines independently
-    and combines their outputs into a single structured response.
+    using async HF API calls and combines their outputs.
     """
     if not comments:
-        # Return empty structure if no valid comments
         return AnalysisResponse(
             summary="No comments provided.",
             sentiment_distribution={"positive": 0.0, "neutral": 0.0, "negative": 0.0},
@@ -22,24 +22,33 @@ def process_feedback(comments: List[str]) -> AnalysisResponse:
             wordcloud_url=None
         )
 
-    # 1. Sentiment Analysis
-    sentiments = analyze_sentiment(comments)
+    # Execute all AI pipelines concurrently for performance
+    # Note: wordcloud_service is currently synchronous (CPU bound), 
+    # we can run it in a thread if needed, but for now simple await.
+    
+    # We use asyncio.gather to trigger all network requests in parallel
+    tasks = [
+        analyze_sentiment(comments),
+        generate_summary(comments),
+        extract_keywords(comments),
+        discover_topics(comments)
+    ]
+    
+    # Wait for all inference results
+    results = await asyncio.gather(*tasks)
+    
+    sentiments = results[0]
+    summary = results[1]
+    keywords = results[2]
+    topics = results[3]
+
+    # Post-process sentiments
     sentiment_dist = calculate_sentiment_distribution(sentiments)
 
-    # 2. Summarization
-    summary = generate_summary(comments)
-
-    # 3. Keyword Extraction
-    keywords = extract_keywords(comments)
-
-    # 4. Topic Modeling
-    topics = discover_topics(comments)
-
-    # 5. Word Cloud Generation
+    # Word cloud is local/fast enough for synchronous execution here
     wordcloud_url = generate_wordcloud(comments)
 
-    # Combine into unified response
-    response = AnalysisResponse(
+    return AnalysisResponse(
         summary=summary,
         sentiment_distribution=sentiment_dist,
         sentiments=sentiments,
@@ -47,5 +56,3 @@ def process_feedback(comments: List[str]) -> AnalysisResponse:
         keywords=keywords,
         wordcloud_url=wordcloud_url
     )
-
-    return response

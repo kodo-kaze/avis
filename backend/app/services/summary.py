@@ -1,41 +1,43 @@
-from transformers import pipeline
+import httpx
 from typing import List
+from app.config.settings import settings
 
-_summary_pipeline = None
+API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
+HEADERS = {"Authorization": f"Bearer {settings.HF_TOKEN}"}
 
-def get_summary_pipeline():
-    global _summary_pipeline
-    if _summary_pipeline is None:
-        try:
-            _summary_pipeline = pipeline(
-                "summarization",
-                model="facebook/bart-large-cnn",
-                truncation=True
-            )
-        except Exception as e:
-            print(f"Failed to load summarization model: {e}")
-    return _summary_pipeline
-
-def generate_summary(comments: List[str]) -> str:
-    pipe = get_summary_pipeline()
-    if not pipe or not comments:
+async def generate_summary(comments: List[str]) -> str:
+    if not comments:
         return "No comments available to summarize."
 
-    # Combine comments for summarization. 
-    # If too long, we take a subset or chunk it. For simplicity, join and truncate.
+    if not settings.HF_TOKEN:
+        print("HF_TOKEN missing, returning fallback summary")
+        return "Please configure HF_TOKEN to generate AI summaries."
+
     combined_text = " ".join(comments)
-    
-    # BART max length is 1024 tokens. We'll rely on the pipeline's truncation.
-    # To avoid massive inference time, limit character length
-    max_chars = 4000 
-    if len(combined_text) > max_chars:
-        combined_text = combined_text[:max_chars]
+    # Truncate to avoid payload limits
+    if len(combined_text) > 4000:
+        combined_text = combined_text[:4000]
 
     try:
-        summary = pipe(combined_text, max_length=130, min_length=30, do_sample=False)
-        if summary and len(summary) > 0:
-            return summary[0]['summary_text']
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                API_URL, 
+                headers=HEADERS, 
+                json={
+                    "inputs": combined_text,
+                    "parameters": {"max_length": 130, "min_length": 30}
+                },
+                timeout=45.0
+            )
+            
+            if response.status_code != 200:
+                print(f"Summary API Error: {response.text}")
+                return "Could not generate summary at this time."
+                
+            result = response.json()
+            if isinstance(result, list) and len(result) > 0:
+                return result[0].get('summary_text', "No summary text returned.")
+            return "Unexpected summary format."
     except Exception as e:
-        print(f"Error during summarization: {e}")
-        
-    return "Could not generate summary."
+        print(f"Error during summarization call: {e}")
+        return "Inference failed."
