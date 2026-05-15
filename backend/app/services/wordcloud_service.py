@@ -2,11 +2,15 @@ from wordcloud import WordCloud
 import matplotlib
 matplotlib.use('Agg') # Required for serverless/non-interactive environments
 import matplotlib.pyplot as plt
-import os
-import uuid
+import io
+import base64
 from typing import List, Optional
 
 def generate_wordcloud(comments: List[str]) -> Optional[str]:
+    """
+    Generates a word cloud in memory and returns it as a base64 encoded string.
+    This avoids filesystem permission issues on serverless platforms like Vercel.
+    """
     if not comments:
         return None
 
@@ -20,20 +24,19 @@ def generate_wordcloud(comments: List[str]) -> Optional[str]:
             colormap='viridis'
         ).generate(combined_text)
         
-        # Save to file
-        filename = f"wordcloud_{uuid.uuid4().hex}.png"
-        filepath = os.path.join("generated", filename)
-        
-        # Plot and save
+        # Plot to a buffer
         plt.figure(figsize=(10, 5))
         plt.imshow(wordcloud, interpolation='bilinear')
         plt.axis('off')
         plt.tight_layout(pad=0)
-        plt.savefig(filepath, format="png", bbox_inches='tight')
+        
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png", bbox_inches='tight')
         plt.close()
         
-        # Return URL path (assuming served statically at /generated)
-        return f"/generated/{filename}"
+        # Encode to base64
+        image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+        return f"data:image/png;base64,{image_base64}"
     except Exception as e:
         print(f"Error generating wordcloud: {e}")
         return None

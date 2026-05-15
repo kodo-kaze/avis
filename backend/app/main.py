@@ -19,10 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve generated files (like wordclouds) statically
-os.makedirs("generated", exist_ok=True)
-app.mount("/generated", StaticFiles(directory="generated"), name="generated")
-
 # Include routers
 app.include_router(analyze.router)
 

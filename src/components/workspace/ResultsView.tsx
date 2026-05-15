@@ -168,7 +168,7 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
               </div>
               <div className="rounded-2xl overflow-hidden bg-white/10 aspect-video flex items-center justify-center">
                 <img 
-                  src={`${API_BASE}${wordcloud_url}`} 
+                  src={wordcloud_url} 
                   alt="Word Cloud" 
                   className="w-full h-full object-contain mix-blend-screen opacity-80"
                 />

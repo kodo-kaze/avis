@@ -31,12 +31,17 @@ async def upload_and_analyze(file: UploadFile = File(...)):
 
     # 3. Orchestrate AI Pipelines
     try:
-        response = process_feedback(cleaned_comments)
+        response = await process_feedback(cleaned_comments)
         return response
     except Exception as e:
         # Log the detailed error in a real app
-        print(f"Pipeline error: {e}")
-        raise HTTPException(status_code=500, detail="AI processing pipeline failed.")
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Pipeline error: {error_details}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"AI processing pipeline failed: {str(e)}"
+        )
 
 @router.post("/analyze-text", response_model=AnalysisResponse)
 async def analyze_text(input_data: TextInput):
@@ -56,10 +61,15 @@ async def analyze_text(input_data: TextInput):
         raise HTTPException(status_code=400, detail="No valid comments found after preprocessing.")
 
     try:
-        response = process_feedback(cleaned_comments)
+        response = await process_feedback(cleaned_comments)
         return response
     except Exception as e:
-        raise HTTPException(status_code=500, detail="AI processing pipeline failed.")
+        import traceback
+        print(f"Pipeline error: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"AI processing pipeline failed: {str(e)}"
+        )
 
 @router.get("/results/{result_id}")
 async def get_results(result_id: str):
