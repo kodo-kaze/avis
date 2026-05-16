@@ -1,4 +1,10 @@
 'use client';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Workspace – AVIS",
+  description: "Intelligence Workspace – AI‑driven stakeholder insight platform",
+};
 
 import React, { useState } from 'react';
 import { Scene } from "@/components/ui/Marble";

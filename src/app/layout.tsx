@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import TitleUpdater from '@/components/TitleUpdater';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
@@ -54,6 +55,7 @@ export default function RootLayout({
         className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-mono", jetbrainsMono.variable)}
       >
         <body className="min-h-full flex flex-col bg-[#050505] text-white">
+          <TitleUpdater />
           <main className="flex-grow flex flex-col">
             {children}
           </main>
