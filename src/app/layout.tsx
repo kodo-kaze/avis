@@ -17,8 +17,29 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stakeholder AI",
-  description: "Experimental 3D interface for stakeholder management",
+  title: "AVIS",
+  description: "AVIS is a next-generation stakeholder management platform powered by the SYNAPSE-AI engine. Transform raw stakeholder feedback into actionable intelligence through AI-driven sentiment analysis, automated topic discovery, and deep keyword extraction, all delivered via a cutting-edge interactive 3D visualization interface.",
+  icons: {
+    icon: "/logo.png",
+  },
+  openGraph: {
+    title: "AVIS",
+    description: "AVIS is a next-generation stakeholder management platform powered by the SYNAPSE-AI engine.",
+    images: [
+      {
+        url: "/preview.png",
+        width: 1200,
+        height: 630,
+        alt: "AVIS Preview",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AVIS",
+    description: "AVIS is a next-generation stakeholder management platform powered by the SYNAPSE-AI engine.",
+    images: ["/preview.png"],
+  },
 };
 
 export default function RootLayout({

@@ -93,7 +93,7 @@ export default function WorkspacePage() {
            </div>
            <div className="text-right">
               <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Avis Engine v1.0</p>
-              <p className="text-xs text-white/40 font-mono">STAKEHOLDER-AI-NODE-01</p>
+              <p className="text-xs text-white/40 font-mono">SYNAPSE-AI-NODE-01</p>
            </div>
         </footer>
       </div>
