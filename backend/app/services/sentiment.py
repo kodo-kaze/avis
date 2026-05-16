@@ -1,77 +1,116 @@
-import httpx
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from app.config.settings import settings
+from huggingface_hub import InferenceClient
 
-API_URL = "https://api-inference.huggingface.co/models/cardiffnlp/twitter-roberta-base-sentiment"
-HEADERS = {"Authorization": f"Bearer {settings.HF_TOKEN}"}
+# Initialize client globally
+client = InferenceClient(
+    provider="auto",
+    api_key=settings.HF_TOKEN,
+)
 
-# Map roberta labels to human readable
+MODEL_NAME = "cardiffnlp/twitter-roberta-base-sentiment"
+
+
+# Label mapping
 LABEL_MAPPING = {
     "LABEL_0": "NEGATIVE",
     "LABEL_1": "NEUTRAL",
-    "LABEL_2": "POSITIVE"
+    "LABEL_2": "POSITIVE",
 }
 
-async def analyze_sentiment(comments: List[str]) -> List[Dict[str, Any]]:
+
+async def analyze_sentiment(
+    comments: List[str]
+) -> List[Dict[str, Any]]:
+
+    # Empty input
     if not comments:
         return []
 
+    # Missing token
     if not settings.HF_TOKEN:
-        print("HF_TOKEN missing, returning empty sentiment")
+        print("HF_TOKEN missing")
         return []
 
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                API_URL, 
-                headers=HEADERS, 
-                json={
-                    "inputs": comments,
-                    "options": {"wait_for_model": True}
-                },
-                timeout=60.0
+
+        formatted_results = []
+
+        # Process comments one by one
+        # (more stable than batch inference for HF APIs)
+        for comment in comments:
+
+            result = client.text_classification(
+                comment,
+                model=MODEL_NAME,
             )
-            
-            if response.status_code != 200:
-                print(f"Sentiment API Error ({response.status_code}): {response.text}")
-                return []
-                
-            results = response.json()
-            
-            # The API returns a nested list: [[{"label": "...", "score": ...}, ...]]
-            # or sometimes just a list depending on input size/batching.
-            # Standardize for batch input
-            formatted_results = []
-            
-            # Handle potential different response formats from HF
-            for comment, result_list in zip(comments, results):
-                # result_list is usually a list of scores for each label
-                # we find the one with the highest score
-                best_match = max(result_list, key=lambda x: x['score'])
-                label = LABEL_MAPPING.get(best_match['label'], "UNKNOWN")
-                formatted_results.append({
-                    "comment": comment,
-                    "label": label,
-                    "score": float(best_match['score'])
-                })
-            
-            return formatted_results
+
+            # Handle list response safely
+            if not result:
+                continue
+
+            # Find best score
+            best_match = max(
+                result,
+                key=lambda x: x.score
+            )
+
+            label = LABEL_MAPPING.get(
+                best_match.label,
+                "UNKNOWN"
+            )
+
+            formatted_results.append({
+                "comment": comment,
+                "label": label,
+                "score": float(best_match.score)
+            })
+
+        return formatted_results
+
     except Exception as e:
-        print(f"Failed to call Sentiment API: {e}")
+        print(f"Sentiment analysis error: {e}")
         return []
 
-def calculate_sentiment_distribution(sentiments: List[Dict[str, Any]]) -> Dict[str, float]:
+
+def calculate_sentiment_distribution(
+    sentiments: List[Dict[str, Any]]
+) -> Dict[str, float]:
+
     if not sentiments:
-        return {"positive": 0, "neutral": 0, "negative": 0}
-        
-    counts = {"POSITIVE": 0, "NEUTRAL": 0, "NEGATIVE": 0}
-    for s in sentiments:
-        if s['label'] in counts:
-            counts[s['label']] += 1
-            
+        return {
+            "positive": 0,
+            "neutral": 0,
+            "negative": 0
+        }
+
+    counts = {
+        "POSITIVE": 0,
+        "NEUTRAL": 0,
+        "NEGATIVE": 0
+    }
+
+    for sentiment in sentiments:
+
+        label = sentiment.get("label")
+
+        if label in counts:
+            counts[label] += 1
+
     total = len(sentiments)
+
     return {
-        "positive": round((counts["POSITIVE"] / total) * 100, 2),
-        "neutral": round((counts["NEUTRAL"] / total) * 100, 2),
-        "negative": round((counts["NEGATIVE"] / total) * 100, 2)
+        "positive": round(
+            (counts["POSITIVE"] / total) * 100,
+            2
+        ),
+        "neutral": round(
+            (counts["NEUTRAL"] / total) * 100,
+            2
+        ),
+        "negative": round(
+            (counts["NEGATIVE"] / total) * 100,
+            2
+        )
     }

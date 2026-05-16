@@ -1,44 +1,90 @@
-import httpx
 from typing import List
+
 from app.config.settings import settings
+from huggingface_hub import InferenceClient
 
-API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
-HEADERS = {"Authorization": f"Bearer {settings.HF_TOKEN}"}
+# Initialize globally
+client = InferenceClient(
+    api_key=settings.HF_TOKEN,
+)
 
-async def extract_keywords(comments: List[str], top_n: int = 5) -> List[str]:
+MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.2:featherless-ai"
+
+
+async def extract_keywords(
+    comments: List[str],
+    top_n: int = 5
+) -> List[str]:
+
+    # Empty input
     if not comments:
         return []
 
+    # Missing token
     if not settings.HF_TOKEN:
-        print("HF_TOKEN missing, returning fallback keywords")
-        return ["analysis", "feedback", "stakeholder"]
+        print("HF_TOKEN missing")
 
-    combined_text = " ".join(comments[:50]) # Limit input for keyword extraction
-    prompt = f"Extract the top {top_n} unique keywords or short key phrases from the following stakeholder feedback. Return ONLY a comma-separated list of keywords.\n\nFeedback: {combined_text}\n\nKeywords:"
+        return [
+            "analysis",
+            "feedback",
+            "stakeholder"
+        ]
 
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                API_URL, 
-                headers=HEADERS, 
-                json={
-                    "inputs": prompt,
-                    "parameters": {"max_new_tokens": 50, "return_full_text": False},
-                    "options": {"wait_for_model": True}
-                },
-                timeout=60.0
-            )
-            
-            if response.status_code != 200:
-                print(f"Keywords API Error ({response.status_code}): {response.text}")
-                return ["General", "Feedback"]
-                
-            result = response.json()
-            if isinstance(result, list) and len(result) > 0:
-                text = result[0].get('generated_text', "")
-                keywords = [kw.strip() for kw in text.split(',') if kw.strip()]
-                return keywords[:top_n]
-            return []
+
+        # Merge comments
+        combined_text = " ".join(comments[:50])
+
+        # Prevent huge prompts
+        combined_text = combined_text[:4000]
+
+        # Better structured prompt
+        prompt = f"""
+Extract the top {top_n} meaningful keywords or short key phrases from the stakeholder feedback below.
+
+Return ONLY a comma-separated list.
+
+Feedback:
+{combined_text}
+"""
+
+        # Chat completion
+        completion = client.chat.completions.create(
+            model=MODEL_NAME,
+
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+
+            max_tokens=100,
+        )
+
+        # Extract response text
+        response_text = (
+            completion
+            .choices[0]
+            .message
+            .content
+        )
+
+        # Parse keywords
+        keywords = [
+            keyword.strip()
+            for keyword in response_text.split(",")
+            if keyword.strip()
+        ]
+
+        return keywords[:top_n]
+
     except Exception as e:
-        print(f"Error extracting keywords via API: {e}")
-        return []
+
+        print(f"Keyword extraction error: {e}")
+
+        return [
+            "analysis",
+            "feedback",
+            "stakeholder"
+        ]

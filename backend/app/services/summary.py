@@ -1,46 +1,48 @@
-import httpx
 from typing import List
-from app.config.settings import settings
 
-API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
-HEADERS = {"Authorization": f"Bearer {settings.HF_TOKEN}"}
+from app.config.settings import settings
+from huggingface_hub import InferenceClient
+
+# Initialize ONCE globally
+client = InferenceClient(
+    provider="auto",
+    api_key=settings.HF_TOKEN,
+)
+
+MODEL_NAME = "facebook/bart-large-cnn"
+
 
 async def generate_summary(comments: List[str]) -> str:
+
+    # Empty input handling
     if not comments:
         return "No comments available to summarize."
 
+    # Missing token fallback
     if not settings.HF_TOKEN:
-        print("HF_TOKEN missing, returning fallback summary")
-        return "Please configure HF_TOKEN to generate AI summaries."
-
-    combined_text = " ".join(comments)
-    # Truncate to avoid payload limits
-    if len(combined_text) > 4000:
-        combined_text = combined_text[:4000]
+        print("HF_TOKEN missing")
+        return "Please configure HF_TOKEN to generate summaries."
 
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                API_URL, 
-                headers=HEADERS, 
-                json={
-                    "inputs": combined_text,
-                    "parameters": {"max_length": 130, "min_length": 30},
-                    "options": {"wait_for_model": True}
-                },
-                timeout=60.0
-            )
-            
-            if response.status_code != 200:
-                print(f"Summary API Error ({response.status_code}): {response.text}")
-                if response.status_code == 503:
-                    return "AI model is currently waking up. Please try again in a few seconds."
-                return "Could not generate summary at this time."
-                
-            result = response.json()
-            if isinstance(result, list) and len(result) > 0:
-                return result[0].get('summary_text', "No summary text returned.")
-            return "Unexpected summary format."
+
+        # Combine comments
+        combined_text = " ".join(comments)
+
+        # Prevent payload overflow
+        combined_text = combined_text[:4000]
+
+        # HuggingFace inference call
+        result = client.summarization(
+            combined_text,
+            model=MODEL_NAME,
+        )
+
+        # Safe extraction
+        if hasattr(result, "summary_text"):
+            return result.summary_text
+
+        return "No summary generated."
+
     except Exception as e:
-        print(f"Error during summarization call: {e}")
-        return "Inference failed."
+        print(f"Summary generation error: {e}")
+        return "Failed to generate summary."
