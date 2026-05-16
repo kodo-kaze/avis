@@ -10,3 +10,4 @@ matplotlib==3.8.3
 wordcloud==1.9.3
 Pillow==10.2.0
 python-dotenv==1.0.1
+huggingface_hub==1.15.0
