@@ -9,16 +9,21 @@ import Link from 'next/link';
 import { UserButton } from '@clerk/nextjs';
 import { LayoutDashboard, ArrowLeft } from 'lucide-react';
 import { AnalysisResult } from '@/lib/types';
+import { useWorkspace } from '@/hooks/useWorkspace';
 
 export default function WorkspaceClient() {
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const {
+    analysisResult,
+    setAnalysisResult,
+    resetWorkspace,
+  } = useWorkspace();
 
   const handleAnalysisComplete = (data: AnalysisResult) => {
     setAnalysisResult(data);
   };
 
   const handleReset = () => {
-    setAnalysisResult(null);
+    resetWorkspace();
   };
 
   return (

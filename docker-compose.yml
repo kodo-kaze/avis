@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  avis-nginx:
+    container_name: avis-nginx
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - avis-frontend
+      - avis-backend
+
+  avis-frontend:
+    container_name: avis-frontend
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # Tell the frontend to use the Nginx reverse proxy
+      - NEXT_PUBLIC_API_BASE=/api
+    # If the app needs the root .env, we can load it:
+    env_file:
+      - .env
+
+  avis-backend:
+    container_name: avis-backend
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
