@@ -11,7 +11,8 @@ import {
   ArrowLeft,
   Smile,
   Meh,
-  Frown
+  Frown,
+  AlertTriangle
 } from 'lucide-react';
 
 import Image from 'next/image';
@@ -23,7 +24,7 @@ interface ResultsViewProps {
 }
 
 export default function ResultsView({ data, onReset }: ResultsViewProps) {
-  const { summary, sentiment_distribution, sentiments, topics, keywords, wordcloud_url } = data;
+  const { summary, sentiment_distribution, sentiments, topics, keywords, wordcloud_url, churn_risk_score } = data;
 
   return (
     <motion.div
@@ -45,9 +46,8 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Summary & Sentiment */}
+        {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
-          {/* AI Summary */}
           <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6 text-white/60">
               <MessageSquare size={20} />
@@ -58,7 +58,6 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
             </p>
           </section>
 
-          {/* Sentiment Distribution */}
           <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-8 text-white/60">
               <BarChart3 size={20} />
@@ -67,60 +66,41 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
             
             <div className="flex items-end gap-2 h-48 mb-8">
               <div className="flex-1 flex flex-col items-center gap-4">
-                <motion.div 
-                  initial={{ height: 0 }} 
-                  animate={{ height: `${sentiment_distribution.positive}%` }} 
-                  className="w-full bg-emerald-500/80 rounded-t-xl relative group"
-                >
-                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-emerald-400">
-                    {sentiment_distribution.positive}%
-                  </span>
+                <motion.div initial={{ height: 0 }} animate={{ height: `${sentiment_distribution.positive}%` }} className="w-full bg-emerald-500/80 rounded-t-xl relative group">
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-emerald-400">{sentiment_distribution.positive}%</span>
                 </motion.div>
                 <Smile className="text-emerald-500" />
               </div>
               <div className="flex-1 flex flex-col items-center gap-4">
-                <motion.div 
-                  initial={{ height: 0 }} 
-                  animate={{ height: `${sentiment_distribution.neutral}%` }} 
-                  className="w-full bg-blue-500/80 rounded-t-xl relative group"
-                >
-                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-blue-400">
-                    {sentiment_distribution.neutral}%
-                  </span>
+                <motion.div initial={{ height: 0 }} animate={{ height: `${sentiment_distribution.neutral}%` }} className="w-full bg-blue-500/80 rounded-t-xl relative group">
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-blue-400">{sentiment_distribution.neutral}%</span>
                 </motion.div>
                 <Meh className="text-blue-500" />
               </div>
               <div className="flex-1 flex flex-col items-center gap-4">
-                <motion.div 
-                  initial={{ height: 0 }} 
-                  animate={{ height: `${sentiment_distribution.negative}%` }} 
-                  className="w-full bg-rose-500/80 rounded-t-xl relative group"
-                >
-                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-rose-400">
-                    {sentiment_distribution.negative}%
-                  </span>
+                <motion.div initial={{ height: 0 }} animate={{ height: `${sentiment_distribution.negative}%` }} className="w-full bg-rose-500/80 rounded-t-xl relative group">
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-rose-400">{sentiment_distribution.negative}%</span>
                 </motion.div>
                 <Frown className="text-rose-500" />
               </div>
             </div>
-
-            <div className="space-y-3 max-h-60 overflow-y-auto pr-4 no-scrollbar">
-              {sentiments.map((s: SentimentItem, i: number) => (
-                <div key={i} className="flex gap-4 p-4 bg-white/5 backdrop-blur-md rounded-xl border border-white/5 text-sm">
-                   <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${
-                     s.label === 'POSITIVE' ? 'bg-emerald-500' : 
-                     s.label === 'NEGATIVE' ? 'bg-rose-500' : 'bg-blue-500'
-                   }`} />
-                   <p className="text-white/70 italic">&quot;{s.comment}&quot;</p>
-                </div>
-              ))}
-            </div>
           </section>
         </div>
 
-        {/* Right Column: Topics, Keywords, Wordcloud */}
+        {/* Right Column: Churn Risk, Topics, Keywords, Wordcloud */}
         <div className="space-y-6">
-          {/* Discovery: Topics */}
+          {/* XGBOOST CHURN RISK CARD */}
+          <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center">
+            <div className="flex items-center gap-2 mb-6 text-rose-500">
+              <AlertTriangle size={20} />
+              <h3 className="font-bold uppercase tracking-widest text-sm text-white/60">Churn Risk Score</h3>
+            </div>
+            <div className="text-6xl font-black text-rose-500 tracking-tighter mb-2">
+              {churn_risk_score !== undefined ? `${churn_risk_score}%` : '0%'}
+            </div>
+            <p className="text-[10px] text-white/30 uppercase tracking-widest">Powered by XGBoost</p>
+          </section>
+
           <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6 text-white/60">
               <Layers size={20} />
@@ -131,53 +111,23 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
                 <div key={i} className="group">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-medium text-white/80">{t.topic}</span>
-                    <span className="text-xs font-mono text-white/40">{t.count} items</span>
+                    <span className="text-xs font-mono text-white/40">{t.count}</span>
                   </div>
                   <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: '100%' }}
-                      transition={{ delay: i * 0.1 }}
-                      className="h-full bg-white/40 group-hover:bg-white transition-colors"
-                    />
+                    <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} className="h-full bg-white/40" />
                   </div>
                 </div>
               ))}
             </div>
           </section>
 
-          {/* Keywords */}
-          <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-            <div className="flex items-center gap-3 mb-6 text-white/60">
-              <Hash size={20} />
-              <h3 className="font-bold uppercase tracking-widest text-sm">Key Themes</h3>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {keywords.map((kw: string, i: number) => (
-                <span key={i} className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-xs font-bold text-white/80 border border-white/5">
-                  {kw}
-                </span>
-              ))}
-            </div>
-          </section>
-
-          {/* WordCloud */}
           {wordcloud_url && (
             <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
               <div className="flex items-center gap-3 mb-6 text-white/60">
                 <ImageIcon size={20} />
                 <h3 className="font-bold uppercase tracking-widest text-sm">Visual Synthesis</h3>
               </div>
-              <div className="rounded-2xl overflow-hidden bg-black/20 backdrop-blur-md aspect-video flex items-center justify-center">
-                <Image 
-                  src={wordcloud_url} 
-                  alt="Word Cloud" 
-                  width={400}
-                  height={225}
-                  className="w-full h-full object-contain mix-blend-screen opacity-80"
-                  unoptimized
-                />
-              </div>
+              <Image src={wordcloud_url} alt="Word Cloud" width={400} height={225} className="w-full h-full opacity-80" unoptimized />
             </section>
           )}
         </div>
