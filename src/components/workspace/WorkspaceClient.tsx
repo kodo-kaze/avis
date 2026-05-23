@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { UserButton } from '@clerk/nextjs';
 import { LayoutDashboard, ArrowLeft } from 'lucide-react';
 import { AnalysisResult } from '@/lib/types';
+import AllIssues from "@/components/workspace/issues/AllIssues";
+import RaiseIssue from "@/components/workspace/issues/RaiseIssue";
 
 export default function WorkspaceClient() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -56,72 +58,43 @@ export default function WorkspaceClient() {
   <div className="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/10 backdrop-blur-md">
     
     <button
-      onClick={() => setActivePage("analysis")}
-      className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
-        activePage === "analysis"
-          ? "bg-white text-black"
-          : "text-white/50 hover:text-white"
-      }`}
-    >
-      Analysis
-    </button>
+  onClick={() => setActivePage("issues")}
+  className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
+    activePage === "issues"
+      ? "bg-white text-black"
+      : "text-white/50 hover:text-white"
+  }`}
+>
+  All Issues
+</button>
 
-    <button
-      onClick={() => setActivePage("topics")}
-      className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
-        activePage === "topics"
-          ? "bg-white text-black"
-          : "text-white/50 hover:text-white"
-      }`}
-    >
-      Topics
-    </button>
+<button
+  onClick={() => setActivePage("raise")}
+  className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
+    activePage === "raise"
+      ? "bg-white text-black"
+      : "text-white/50 hover:text-white"
+  }`}
+>
+  Raise Issue
+</button>
 
   </div>
 </div>
           <AnimatePresence mode="wait">
   {activePage === "analysis" ? (
     !analysisResult ? (
-      <motion.div
-        key="form"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 1.05 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="flex flex-col items-center gap-16 pt-12 md:pt-20 pb-20"
-      >
-        <div className="text-center space-y-6">
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.85] py-4">
-            ORCHESTRATE <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white/20 to-white/40">
-              INTELLIGENCE.
-            </span>
-          </h1>
-          <p className="text-white/40 uppercase tracking-[0.5em] text-[10px] font-black">
-            Automated Voice Insight System — Multi-Pipeline AI Analysis
-          </p>
-        </div>
-
-        <AnalysisForm onAnalysisComplete={handleAnalysisComplete} />
-      </motion.div>
+      <AnalysisForm onAnalysisComplete={handleAnalysisComplete} />
     ) : (
-      <div className="pt-10 w-full flex justify-center">
-        <ResultsView
-          key="results"
-          data={analysisResult}
-          onReset={handleReset}
-        />
-      </div>
+      <ResultsView
+        data={analysisResult}
+        onReset={handleReset}
+      />
     )
-  ) : activePage === "topics" ? (
-    <motion.div
-      key="topics"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="text-center text-white/40"
-    >
-      Topics section coming soon...
-    </motion.div>
+  ) : activePage === "issues" ? (
+    <AllIssues />
+  ) : activePage === "raise" ? (
+    <RaiseIssue />
   ) : null}
 </AnimatePresence>
         </main>
