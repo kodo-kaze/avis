@@ -1,101 +1,150 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Scene } from "@/components/ui/Marble";
-import AnalysisForm from "@/components/workspace/AnalysisForm";
-import ResultsView from "@/components/workspace/ResultsView";
-import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
-import { UserButton } from '@clerk/nextjs';
-import { LayoutDashboard, ArrowLeft } from 'lucide-react';
-import { AnalysisResult } from '@/lib/types';
+import React, { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  BarChart3, 
+  MessageSquare, 
+  Hash, 
+  Layers, 
+  Image as ImageIcon,
+  ArrowLeft,
+  Smile,
+  Meh,
+  Frown,
+  AlertTriangle
+} from 'lucide-react';
 
-export default function WorkspaceClient() {
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+import Image from 'next/image';
+import { AnalysisResult, SentimentItem, TopicItem } from '@/lib/types';
 
-  const handleAnalysisComplete = (data: AnalysisResult) => {
-    setAnalysisResult(data);
-  };
+interface ResultsViewProps {
+  data: AnalysisResult;
+  onReset: () => void;
+}
 
-  const handleReset = () => {
-    setAnalysisResult(null);
-  };
+export default function ResultsView({ data, onReset }: ResultsViewProps) {
+  // Debugging ke liye: Ye console.log tumhe batayega ki backend exact kya bhej raha hai
+  useEffect(() => {
+    console.log("🚀 Backend API Data:", data);
+  }, [data]);
+
+  const { summary, sentiment_distribution, sentiments, topics, keywords, wordcloud_url, churn_risk_score } = data;
+
+  // Robust data extraction with TypeScript bypass
+  const safePositive = sentiment_distribution?.positive || (sentiment_distribution as any)?.Positive || 0;
+  const safeNeutral = sentiment_distribution?.neutral || (sentiment_distribution as any)?.Neutral || 0;
+  const safeNegative = sentiment_distribution?.negative || (sentiment_distribution as any)?.Negative || 0;
 
   return (
-    <div className="relative w-full h-screen bg-[#050505] overflow-hidden text-white font-sans">
-      {/* 3D Background - FIXED: Hide scene when results are shown to prevent Context Lost/Blur */}
-      <div className="absolute inset-0 z-0">
-        {!analysisResult && <Scene />}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="w-full max-w-6xl pb-32 px-4"
+    >
+      <div className="flex justify-between items-center mb-16 pt-4">
+        <div>
+          <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight">ANALYSIS RESULTS</h2>
+          <p className="text-white/40 uppercase tracking-[0.3em] text-[10px] mt-2 font-black">AI Orchestration complete • Nodes active</p>
+        </div>
+        <button
+          onClick={onReset}
+          className="flex items-center gap-2 px-8 py-3 bg-white text-black rounded-full hover:bg-neutral-200 transition-all text-xs font-black tracking-widest uppercase shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+        >
+          <ArrowLeft size={16} /> NEW ANALYSIS
+        </button>
       </div>
-      
-      {/* UI Overlay */}
-      <div className="relative z-10 w-full h-full flex flex-col">
-        {/* Navigation Header */}
-        <header className="w-full px-12 py-10 flex justify-between items-center bg-gradient-to-b from-black/80 via-black/40 to-transparent">
-          <div className="flex items-center gap-8">
-             <Link href="/" className="group flex items-center gap-3 text-white/50 hover:text-white transition-all">
-                <div className="p-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10 group-hover:bg-white group-hover:text-black transition-all">
-                  <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.4em]">AVIS ENGINE</span>
-             </Link>
-             <div className="h-6 w-[1px] bg-white/20" />
-             <div className="flex items-center gap-3">
-                <LayoutDashboard size={24} className="text-white" />
-                <span className="font-black tracking-tighter text-2xl uppercase">Intelligence Workspace</span>
-             </div>
-          </div>
-          <div className="p-1.5 bg-white/5 border border-white/10 rounded-full backdrop-blur-md">
-            <UserButton />
-          </div>
-        </header>
 
-        {/* Main Content Area */}
-        <main className="flex-grow flex items-start justify-center p-8 md:p-12 overflow-y-auto no-scrollbar">
-          <AnimatePresence mode="wait">
-            {!analysisResult ? (
-              <motion.div
-                key="form"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.05 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className="flex flex-col items-center gap-16 pt-12 md:pt-20 pb-20"
-              >
-                <div className="text-center space-y-6">
-                  <h1 className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.85] py-4">
-                    ORCHESTRATE <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-white/20 to-white/40">INTELLIGENCE.</span>
-                  </h1>
-                  <p className="text-white/40 uppercase tracking-[0.5em] text-[10px] font-black">
-                    Automated Voice Insight System — Multi-Pipeline AI Analysis
-                  </p>
-                </div>
-                
-                <AnalysisForm onAnalysisComplete={handleAnalysisComplete} />
-              </motion.div>
-            ) : (
-              <div className="pt-10 w-full flex justify-center">
-                <ResultsView key="results" data={analysisResult} onReset={handleReset} />
-              </div>
-            )}
-          </AnimatePresence>
-        </main>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column */}
+        <div className="lg:col-span-2 space-y-6">
+          <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+            <div className="flex items-center gap-3 mb-6 text-white/60">
+              <MessageSquare size={20} />
+              <h3 className="font-bold uppercase tracking-widest text-sm">AI Executive Summary</h3>
+            </div>
+            <p className="text-xl leading-relaxed text-neutral-200 font-medium">
+              &quot;{summary || "No summary generated by the engine."}&quot;
+            </p>
+          </section>
 
-        {/* Footer info */}
-        <footer className="px-12 py-8 flex justify-between items-end pointer-events-none">
-           <div className="space-y-1">
-              <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Status</p>
-              <div className="flex items-center gap-2">
-                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                 <p className="text-xs text-white/40 font-mono tracking-tight">AI PIPELINE READY</p>
+          <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+            <div className="flex items-center gap-3 mb-8 text-white/60">
+              <BarChart3 size={20} />
+              <h3 className="font-bold uppercase tracking-widest text-sm">Sentiment Intelligence</h3>
+            </div>
+            
+            <div className="flex items-end gap-2 h-48 mb-8">
+              <div className="flex-1 flex flex-col items-center gap-4">
+                <motion.div initial={{ height: 0 }} animate={{ height: `${safePositive}%` }} className="w-full bg-emerald-500/80 rounded-t-xl relative group">
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-emerald-400">{safePositive}%</span>
+                </motion.div>
+                <Smile className="text-emerald-500" />
               </div>
-           </div>
-           <div className="text-right">
-              <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Avis Engine v1.0</p>
-              <p className="text-xs text-white/40 font-mono">SYNAPSE-AI-NODE-01</p>
-           </div>
-        </footer>
+              <div className="flex-1 flex flex-col items-center gap-4">
+                <motion.div initial={{ height: 0 }} animate={{ height: `${safeNeutral}%` }} className="w-full bg-blue-500/80 rounded-t-xl relative group">
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-blue-400">{safeNeutral}%</span>
+                </motion.div>
+                <Meh className="text-blue-500" />
+              </div>
+              <div className="flex-1 flex flex-col items-center gap-4">
+                <motion.div initial={{ height: 0 }} animate={{ height: `${safeNegative}%` }} className="w-full bg-rose-500/80 rounded-t-xl relative group">
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-rose-400">{safeNegative}%</span>
+                </motion.div>
+                <Frown className="text-rose-500" />
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Right Column: Churn Risk, Topics, Keywords, Wordcloud */}
+        <div className="space-y-6">
+          {/* XGBOOST CHURN RISK CARD */}
+          <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center">
+            <div className="flex items-center gap-2 mb-6 text-rose-500">
+              <AlertTriangle size={20} />
+              <h3 className="font-bold uppercase tracking-widest text-sm text-white/60">Churn Risk Score</h3>
+            </div>
+            <div className="text-6xl font-black text-rose-500 tracking-tighter mb-2">
+              {churn_risk_score !== undefined ? `${churn_risk_score}%` : '0%'}
+            </div>
+            <p className="text-[10px] text-white/30 uppercase tracking-widest">Powered by XGBoost</p>
+          </section>
+
+          <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+            <div className="flex items-center gap-3 mb-6 text-white/60">
+              <Layers size={20} />
+              <h3 className="font-bold uppercase tracking-widest text-sm">Discovered Topics</h3>
+            </div>
+            <div className="space-y-4">
+              {topics?.length > 0 ? topics.map((t: TopicItem, i: number) => (
+                <div key={i} className="group">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium text-white/80">{t.topic}</span>
+                    <span className="text-xs font-mono text-white/40">{t.count}</span>
+                  </div>
+                  <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                    <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} className="h-full bg-white/40" />
+                  </div>
+                </div>
+              )) : (
+                <p className="text-white/40 text-sm">No topics discovered.</p>
+              )}
+            </div>
+          </section>
+
+          {wordcloud_url && (
+            <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+              <div className="flex items-center gap-3 mb-6 text-white/60">
+                <ImageIcon size={20} />
+                <h3 className="font-bold uppercase tracking-widest text-sm">Visual Synthesis</h3>
+              </div>
+              <Image src={wordcloud_url} alt="Word Cloud" width={400} height={225} className="w-full h-full opacity-80" unoptimized />
+            </section>
+          )}
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
+
