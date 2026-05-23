@@ -1,13 +1,3 @@
 {
-  "version": 2,
-  "experimentalServices": [
-    {
-      "source": "frontend",
-      "type": "web"
-    },
-    {
-      "source": "backend",
-      "type": "api"
-    }
-  ]
+  "version": 2
 }
