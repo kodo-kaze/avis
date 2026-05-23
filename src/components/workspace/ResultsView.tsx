@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { 
   BarChart3, 
   MessageSquare, 
-  Hash, 
   Layers, 
   Image as ImageIcon,
   ArrowLeft,
@@ -15,10 +14,8 @@ import {
   AlertTriangle
 } from 'lucide-react';
 
-
-
 import Image from 'next/image';
-import { AnalysisResult, SentimentItem, TopicItem } from '@/lib/types';
+import { AnalysisResult, TopicItem } from '@/lib/types';
 
 interface ResultsViewProps {
   data: AnalysisResult;
@@ -26,17 +23,17 @@ interface ResultsViewProps {
 }
 
 export default function ResultsView({ data, onReset }: ResultsViewProps) {
-  // Debugging ke liye: Ye console.log tumhe batayega ki backend exact kya bhej raha hai
   useEffect(() => {
     console.log("🚀 Backend API Data:", data);
   }, [data]);
 
-  const { summary, sentiment_distribution, sentiments, topics, keywords, wordcloud_url, churn_risk_score } = data;
+  const { summary, sentiment_distribution, topics, wordcloud_url, churn_risk_score } = data;
 
-  // Robust data extraction: Handles both lowercase (React style) and Uppercase (Python dictionary style)
-  const safePositive = sentiment_distribution?.positive || sentiment_distribution?.Positive || 0;
-  const safeNeutral = sentiment_distribution?.neutral || sentiment_distribution?.Neutral || 0;
-  const safeNegative = sentiment_distribution?.negative || sentiment_distribution?.Negative || 0;
+  // STRICT BYPASS: Converting to 'any' forces TypeScript to ignore the Uppercase/Lowercase type error entirely.
+  const dist: any = sentiment_distribution || {};
+  const safePositive = dist.positive || dist.Positive || 0;
+  const safeNeutral = dist.neutral || dist.Neutral || 0;
+  const safeNegative = dist.negative || dist.Negative || 0;
 
   return (
     <motion.div
@@ -58,7 +55,6 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6 text-white/60">
@@ -99,9 +95,7 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
           </section>
         </div>
 
-        {/* Right Column: Churn Risk, Topics, Keywords, Wordcloud */}
         <div className="space-y-6">
-          {/* XGBOOST CHURN RISK CARD */}
           <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center">
             <div className="flex items-center gap-2 mb-6 text-rose-500">
               <AlertTriangle size={20} />
