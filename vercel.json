@@ -1,21 +1,13 @@
 {
   "version": 2,
-  "experimental": {
-    "functions": {
-      "backend/index.py": {
-        "memory": 1024,
-        "maxDuration": 10
-      }
-    }
-  },
-  "rewrites": [
+  "experimentalServices": [
     {
-      "source": "/api/(.*)",
-      "destination": "/backend/index.py"
+      "source": "frontend",
+      "type": "web"
     },
     {
-      "source": "/(.*)",
-      "destination": "/$1"
+      "source": "backend",
+      "type": "api"
     }
   ]
 }
