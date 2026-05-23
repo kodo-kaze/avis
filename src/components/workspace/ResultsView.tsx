@@ -27,8 +27,9 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
     console.log("🚀 Backend API Data:", data);
   }, [data]);
 
-  const { summary, sentiment_distribution, topics, wordcloud_url, churn_risk_score } = data;
-
+  // Bypass TS strict checking for incoming AI/XGBoost metrics
+  const { summary, sentiment_distribution, topics, wordcloud_url, churn_risk_score } = data as any;
+  
   // STRICT BYPASS: Converting to 'any' forces TypeScript to ignore the Uppercase/Lowercase type error entirely.
   const dist: any = sentiment_distribution || {};
   const safePositive = dist.positive || dist.Positive || 0;
