@@ -11,3 +11,5 @@ wordcloud==1.9.3
 Pillow==10.2.0
 python-dotenv==1.0.1
 huggingface_hub==1.15.0
+xgboost==2.0.3
+scikit-learn==1.4.1.post1
