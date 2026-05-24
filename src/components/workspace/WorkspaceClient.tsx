@@ -99,44 +99,46 @@ export default function WorkspaceClient() {
         <main className="flex-grow flex flex-col items-center p-8 md:p-12 overflow-y-auto">
 
           {/* Tabs */}
-          <div className="flex justify-center mb-6">
-            <div className="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/10 backdrop-blur-md">
+          {activePage !== "about" && (
+            <div className="flex justify-center mb-6">
+              <div className="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/10 backdrop-blur-md">
 
-              <button
-                onClick={() => handlePageChange("analysis")}
-                className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
-                  activePage === "analysis"
-                    ? "bg-white text-black"
-                    : "text-white/50 hover:text-white"
-                }`}
-              >
-                Analysis
-              </button>
+                <button
+                  onClick={() => handlePageChange("analysis")}
+                  className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
+                    activePage === "analysis"
+                      ? "bg-white text-black"
+                      : "text-white/50 hover:text-white"
+                  }`}
+                >
+                  Analysis
+                </button>
 
-              <button
-                onClick={() => handlePageChange("issues")}
-                className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
-                  activePage === "issues"
-                    ? "bg-white text-black"
-                    : "text-white/50 hover:text-white"
-                }`}
-              >
-                All Issues
-              </button>
+                <button
+                  onClick={() => handlePageChange("issues")}
+                  className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
+                    activePage === "issues"
+                      ? "bg-white text-black"
+                      : "text-white/50 hover:text-white"
+                  }`}
+                >
+                  All Issues
+                </button>
 
-              <button
-                onClick={() => handlePageChange("raise")}
-                className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
-                  activePage === "raise"
-                    ? "bg-white text-black"
-                    : "text-white/50 hover:text-white"
-                }`}
-              >
-                Raise Issue
-              </button>
+                <button
+                  onClick={() => handlePageChange("raise")}
+                  className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
+                    activePage === "raise"
+                      ? "bg-white text-black"
+                      : "text-white/50 hover:text-white"
+                  }`}
+                >
+                  Raise Issue
+                </button>
 
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Content */}
           <AnimatePresence mode="wait">
