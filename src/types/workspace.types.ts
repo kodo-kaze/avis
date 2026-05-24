@@ -19,5 +19,6 @@ export interface WorkspaceState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   resetWorkspace: () => void;
-  addIssue: (issue: Omit<Issue, 'id' | 'createdAt' | 'status'>) => void;
+  addIssue: (issue: Issue) => void;
+  setIssues: (issues: Issue[]) => void;
 }

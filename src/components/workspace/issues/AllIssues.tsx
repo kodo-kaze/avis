@@ -1,12 +1,38 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, User, AlertCircle, CheckCircle2, MoreVertical, Search, Filter } from 'lucide-react';
+import { Clock, User, AlertCircle, CheckCircle2, MoreVertical, Search, Filter, Loader2 } from 'lucide-react';
 import { useWorkspaceStore } from '@/store/workspace.store';
+import { fetchIssues } from '@/services/workspace.service';
 
 export default function AllIssues() {
   const issues = useWorkspaceStore((state) => state.issues);
+  const setIssues = useWorkspaceStore((state) => state.setIssues);
+  const [loading, setLoading] = useState(issues.length === 0);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await fetchIssues();
+        const mappedIssues = data.map((item: any) => ({
+          id: item.id.toString(),
+          title: item.title,
+          description: item.description,
+          status: item.status,
+          createdAt: item.created_at,
+          author: item.author,
+        }));
+        setIssues(mappedIssues);
+      } catch (error) {
+        console.error("Failed to load issues:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [setIssues]);
 
   return (
     <div className="w-full max-w-5xl space-y-8">
@@ -20,6 +46,7 @@ export default function AllIssues() {
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
+          {loading && <Loader2 size={16} className="animate-spin text-white/20" />}
           <div className="relative flex-grow md:flex-grow-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
             <input 
@@ -36,7 +63,12 @@ export default function AllIssues() {
 
       {/* Issues Grid/List */}
       <div className="grid grid-cols-1 gap-4">
-        {issues.length === 0 ? (
+        {loading && issues.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white/5 rounded-[2rem] border border-dashed border-white/10">
+            <Loader2 className="animate-spin text-white/20 mb-4" size={48} />
+            <p className="text-white/40 font-mono text-sm uppercase tracking-widest">Accessing Secure Vault...</p>
+          </div>
+        ) : issues.length === 0 ? (
           <div className="text-center py-20 bg-white/5 rounded-[2rem] border border-dashed border-white/10">
             <AlertCircle className="mx-auto text-white/10 mb-4" size={48} />
             <p className="text-white/40 font-mono text-sm uppercase tracking-widest">No issues found in pipeline</p>

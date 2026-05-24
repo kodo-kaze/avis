@@ -11,6 +11,7 @@ export const useWorkspace = () => {
     setError,
     resetWorkspace,
     addIssue,
+    setIssues,
   } = useWorkspaceStore();
 
   return {
@@ -23,5 +24,6 @@ export const useWorkspace = () => {
     setError,
     resetWorkspace,
     addIssue,
+    setIssues,
   };
 };

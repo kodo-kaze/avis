@@ -38,3 +38,13 @@ export const analyzeText = async (
 
   return response.data;
 };
+
+export const createIssue = async (issue: { title: string; description: string; author: string }) => {
+  const response = await axios.post(`${API_BASE}/issues/`, issue);
+  return response.data;
+};
+
+export const fetchIssues = async () => {
+  const response = await axios.get(`${API_BASE}/issues/`);
+  return response.data;
+};

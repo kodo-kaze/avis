@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Upload, Send, Loader2, AlertCircle, CheckCircle2, FileText, X } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useWorkspaceStore } from '@/store/workspace.store';
+import { createIssue } from '@/services/workspace.service';
 
 export default function RaiseIssue() {
   const { user } = useUser();
@@ -30,13 +31,19 @@ export default function RaiseIssue() {
     setError(null);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      addIssue({
+      const dbIssue = await createIssue({
         title,
         description: file ? `${description} (Attachment: ${file.name})` : description,
         author: user?.fullName || user?.username || 'Anonymous User',
+      });
+      
+      addIssue({
+        id: dbIssue.id.toString(),
+        title: dbIssue.title,
+        description: dbIssue.description,
+        status: dbIssue.status,
+        createdAt: dbIssue.created_at,
+        author: dbIssue.author,
       });
 
       setSuccess(true);
@@ -46,7 +53,8 @@ export default function RaiseIssue() {
       
       setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
-      setError('Failed to submit issue. Please try again.');
+      setError('Failed to transmit data to secure storage. Please check connectivity.');
+      console.error(err);
     } finally {
       setIsSubmitting(false);
     }

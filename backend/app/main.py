@@ -1,8 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.routes import analyze
+from app.routes import analyze, issues
+from app.config.database import engine, Base
 import os
+
+# Create tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="AVIS AI Orchestrator",
@@ -21,6 +25,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(analyze.router)
+app.include_router(issues.router)
 
 @app.get("/health")
 async def health_check():
