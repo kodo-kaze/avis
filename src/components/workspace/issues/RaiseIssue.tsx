@@ -1,16 +1,15 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Send, Loader2, AlertCircle, CheckCircle2, FileText, X, Clock, User as UserIcon, MessageSquare, ChevronRight } from 'lucide-react';
+import { Upload, Send, Loader2, AlertCircle, CheckCircle2, FileText, X } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useWorkspaceStore } from '@/store/workspace.store';
-import { createIssue, fetchMyIssues } from '@/services/workspace.service';
+import { createIssue } from '@/services/workspace.service';
 
 export default function RaiseIssue() {
   const { user } = useUser();
   const addIssue = useWorkspaceStore((state) => state.addIssue);
-  const setSelectedIssue = useWorkspaceStore((state) => state.setSelectedIssue);
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -18,39 +17,10 @@ export default function RaiseIssue() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const [myIssues, setMyIssues] = useState<any[]>([]);
-  const [isLoadingMyIssues, setIsLoadingMyIssues] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const authorName = user?.fullName || user?.username || 'Anonymous User';
-
-  const loadMyIssues = async () => {
-    if (!authorName) return;
-    setIsLoadingMyIssues(true);
-    try {
-      const data = await fetchMyIssues(authorName);
-      setMyIssues(data.map((item: any) => ({
-        ...item,
-        id: item.id.toString(),
-        analysisResult: item.analysis_result,
-        opinions: item.opinions?.map((o: any) => ({
-          ...o,
-          id: o.id.toString(),
-          issueId: o.issue_id.toString(),
-        }))
-      })));
-    } catch (err) {
-      console.error("Failed to load my issues", err);
-    } finally {
-      setIsLoadingMyIssues(false);
-    }
-  };
-
-  useEffect(() => {
-    loadMyIssues();
-  }, [authorName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +49,6 @@ export default function RaiseIssue() {
       };
 
       addIssue(newIssue);
-      setMyIssues(prev => [newIssue, ...prev]);
 
       setSuccess(true);
       setTitle('');
@@ -210,61 +179,6 @@ export default function RaiseIssue() {
             )}
           </button>
         </form>
-
-        {/* MY ISSUES SECTION */}
-        <div className="mt-12 space-y-6 pt-12 border-t border-white/5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/5 rounded-lg border border-white/10">
-                <UserIcon size={18} className="text-white/60" />
-              </div>
-              <h3 className="text-lg font-black uppercase tracking-tight">Your Pipeline Concerns</h3>
-            </div>
-            <span className="text-[10px] font-mono text-white/30 uppercase tracking-widest">{myIssues.length} ISSUES</span>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4">
-            {isLoadingMyIssues ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="animate-spin text-white/20" size={24} />
-              </div>
-            ) : myIssues.length === 0 ? (
-              <div className="text-center py-12 bg-white/5 rounded-2xl border border-dashed border-white/5">
-                <p className="text-white/20 font-mono text-xs uppercase tracking-widest">No issues raised yet</p>
-              </div>
-            ) : (
-              myIssues.slice(0, 3).map((issue, idx) => (
-                <motion.div
-                  key={issue.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                  onClick={() => setSelectedIssue(issue)}
-                  className="group flex items-center justify-between p-5 bg-white/5 border border-white/5 hover:border-white/20 rounded-2xl transition-all cursor-pointer"
-                >
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-3">
-                      <span className={`w-1.5 h-1.5 rounded-full ${
-                        issue.status === 'Open' ? 'bg-red-500 animate-pulse' :
-                        issue.status === 'Resolved' ? 'bg-emerald-500' :
-                        'bg-amber-500'
-                      }`} />
-                      <h4 className="text-sm font-bold text-white group-hover:text-white transition-colors">{issue.title}</h4>
-                    </div>
-                    <div className="flex items-center gap-4 text-[10px] font-mono text-white/30 uppercase tracking-widest">
-                      <span className="flex items-center gap-1.5"><Clock size={10} /> {new Date(issue.createdAt).toLocaleDateString()}</span>
-                      <span className="flex items-center gap-1.5"><MessageSquare size={10} /> {issue.opinions?.length || 0} Opinions</span>
-                    </div>
-                  </div>
-                  <ChevronRight size={16} className="text-white/10 group-hover:text-white/60 transition-colors translate-x-0 group-hover:translate-x-1" />
-                </motion.div>
-              ))
-            )}
-            {myIssues.length > 3 && (
-              <p className="text-center text-[10px] font-black uppercase tracking-widest text-white/20">Check &quot;All Issues&quot; for more</p>
-            )}
-          </div>
-        </div>
       </div>
     </motion.div>
   );

@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, User, AlertCircle, CheckCircle2, MoreVertical, Search, Filter, Loader2 } from 'lucide-react';
+import { Clock, User, AlertCircle, MoreVertical, Search, Filter, Loader2 } from 'lucide-react';
 import { useWorkspaceStore } from '@/store/workspace.store';
 import { fetchIssues } from '@/services/workspace.service';
+import { Issue } from '@/types/workspace.types';
 
 export default function AllIssues() {
   const issues = useWorkspaceStore((state) => state.issues);
@@ -16,7 +17,14 @@ export default function AllIssues() {
     const load = async () => {
       try {
         const data = await fetchIssues();
-        const mappedIssues = data.map((item: any) => ({
+        const mappedIssues: Issue[] = data.map((item: {
+          id: number | string;
+          title: string;
+          description: string;
+          status: 'Open' | 'Resolved' | 'Pending';
+          created_at: string;
+          author: string;
+        }) => ({
           id: item.id.toString(),
           title: item.title,
           description: item.description,
@@ -81,7 +89,7 @@ export default function AllIssues() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              onClick={() => setSelectedIssue(issue)}
+              onClick={() => setSelectedIssue(issue, 'all')}
               className="group relative bg-black/40 backdrop-blur-xl border border-white/10 hover:border-white/40 rounded-2xl p-6 transition-all cursor-pointer hover:translate-x-1"
             >
               <div className="flex justify-between items-start gap-4">

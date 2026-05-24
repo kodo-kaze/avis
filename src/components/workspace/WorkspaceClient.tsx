@@ -12,6 +12,8 @@ import { AnalysisResult } from '@/lib/types';
 
 import AllIssues from "@/components/workspace/issues/AllIssues";
 import RaiseIssue from "@/components/workspace/issues/RaiseIssue";
+import PipelineConcerns from "@/components/workspace/issues/PipelineConcerns";
+import PipelineIssueDetail from "@/components/workspace/issues/PipelineIssueDetail";
 import IssueDetail from "@/components/workspace/issues/IssueDetail";
 
 import { useWorkspace } from '@/hooks/useWorkspace';
@@ -30,9 +32,15 @@ export default function WorkspaceClient() {
     resetWorkspace,
     selectedIssue,
     setSelectedIssue,
+    selectionSource,
   } = useWorkspace();
 
   const [activePage, setActivePage] = useState("analysis");
+
+  const handlePageChange = (page: string) => {
+    setActivePage(page);
+    setSelectedIssue(null);
+  };
 
   const handleAnalysisComplete = (data: AnalysisResult) => {
     setAnalysisResult(data);
@@ -94,7 +102,7 @@ export default function WorkspaceClient() {
             <div className="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/10 backdrop-blur-md">
 
               <button
-                onClick={() => setActivePage("analysis")}
+                onClick={() => handlePageChange("analysis")}
                 className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
                   activePage === "analysis"
                     ? "bg-white text-black"
@@ -105,7 +113,7 @@ export default function WorkspaceClient() {
               </button>
 
               <button
-                onClick={() => setActivePage("issues")}
+                onClick={() => handlePageChange("issues")}
                 className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
                   activePage === "issues"
                     ? "bg-white text-black"
@@ -116,7 +124,7 @@ export default function WorkspaceClient() {
               </button>
 
               <button
-                onClick={() => setActivePage("raise")}
+                onClick={() => handlePageChange("raise")}
                 className={`px-5 py-2 text-xs uppercase tracking-widest rounded-lg transition ${
                   activePage === "raise"
                     ? "bg-white text-black"
@@ -149,7 +157,14 @@ export default function WorkspaceClient() {
                 <AllIssues />
               )
             ) : activePage === "raise" ? (
-              <RaiseIssue />
+              <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-8 items-start justify-center">
+                <RaiseIssue />
+                {selectedIssue && selectionSource === 'pipeline' ? (
+                  <PipelineIssueDetail />
+                ) : (
+                  <PipelineConcerns />
+                )}
+              </div>
             ) : null}
           </AnimatePresence>
         </main>

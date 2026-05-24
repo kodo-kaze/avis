@@ -25,6 +25,7 @@ export interface WorkspaceState {
   error: string | null;
   issues: Issue[];
   selectedIssue: Issue | null;
+  selectionSource: 'all' | 'pipeline' | null;
 
   setAnalysisResult: (result: AnalysisResult | null) => void;
   setLoading: (loading: boolean) => void;
@@ -32,5 +33,5 @@ export interface WorkspaceState {
   resetWorkspace: () => void;
   addIssue: (issue: Issue) => void;
   setIssues: (issues: Issue[]) => void;
-  setSelectedIssue: (issue: Issue | null) => void;
+  setSelectedIssue: (issue: Issue | null, source?: 'all' | 'pipeline') => void;
 }

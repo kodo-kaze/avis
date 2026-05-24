@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, User, Clock, MessageSquare, Send, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
@@ -15,38 +15,41 @@ interface IssueDetailProps {
 export default function IssueDetail({ onBack }: IssueDetailProps) {
   const { user } = useUser();
   const selectedIssue = useWorkspaceStore((state) => state.selectedIssue);
+  const selectionSource = useWorkspaceStore((state) => state.selectionSource);
   const setSelectedIssue = useWorkspaceStore((state) => state.setSelectedIssue);
   
   const [opinionText, setOpinionText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refreshDetails = async () => {
+  const refreshDetails = useCallback(async () => {
     if (!selectedIssue) return;
-    setIsLoadingDetails(true);
     try {
       const data = await fetchIssueDetails(selectedIssue.id);
       setSelectedIssue({
-        ...data,
         id: data.id.toString(),
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        createdAt: data.created_at,
+        author: data.author,
         analysisResult: data.analysis_result,
-        opinions: data.opinions.map((o: any) => ({
-          ...o,
+        opinions: data.opinions.map((o: { id: number | string; issue_id: number | string; text: string; author: string; created_at: string }) => ({
           id: o.id.toString(),
           issueId: o.issue_id.toString(),
+          text: o.text,
+          author: o.author,
+          createdAt: o.created_at
         }))
-      });
+      }, selectionSource || undefined);
     } catch (err) {
       console.error("Failed to refresh issue details", err);
-    } finally {
-      setIsLoadingDetails(false);
     }
-  };
+  }, [selectedIssue, setSelectedIssue, selectionSource]);
 
   useEffect(() => {
     refreshDetails();
-  }, []);
+  }, [refreshDetails]);
 
   const handleSubmitOpinion = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +65,7 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
       });
       setOpinionText('');
       await refreshDetails(); // Refresh to show new opinion and potential AI result
-    } catch (err) {
+    } catch {
       setError('Failed to submit opinion. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -212,17 +215,17 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
         </div>
 
         {/* Right Column: AI Analysis */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-              <CheckCircle2 size={20} className="text-emerald-400" />
+        {(user?.fullName === selectedIssue.author || user?.username === selectedIssue.author) && selectionSource === 'pipeline' ? (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                <CheckCircle2 size={20} className="text-emerald-400" />
+              </div>
+              <h3 className="text-xl font-black uppercase tracking-tight">AI Consensus</h3>
             </div>
-            <h3 className="text-xl font-black uppercase tracking-tight">AI Consensus</h3>
-          </div>
 
-          <div className="sticky top-8">
-            {user?.fullName === selectedIssue.author || user?.username === selectedIssue.author ? (
-              selectedIssue.analysisResult ? (
+            <div className="sticky top-8">
+              {selectedIssue.analysisResult ? (
                 <ResultsView
                   data={selectedIssue.analysisResult}
                   onReset={() => {}}
@@ -259,22 +262,30 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
                     </div>
                   </div>
                 </div>
-              )
-            ) : (
-              <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 text-center space-y-6">
-                <div className="flex items-center justify-center w-20 h-20 bg-white/5 rounded-full border border-white/10 mx-auto">
-                  <AlertCircle className="text-white/20" size={32} />
-                </div>
-                <div className="space-y-2">
-                  <p className="text-white font-bold uppercase tracking-widest text-xs">Private Intelligence</p>
-                  <p className="text-white/30 text-[10px] font-mono uppercase leading-relaxed">
-                    Detailed AI analysis results are exclusively visible to the <span className="text-white/60">Issue Author</span>.
-                  </p>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/5 rounded-lg border border-white/10">
+                <AlertCircle size={20} className="text-white/40" />
+              </div>
+              <h3 className="text-xl font-black uppercase tracking-tight text-white/40">Intelligence</h3>
+            </div>
+            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 text-center space-y-6">
+              <div className="flex items-center justify-center w-20 h-20 bg-white/5 rounded-full border border-white/10 mx-auto">
+                <AlertCircle className="text-white/20" size={32} />
+              </div>
+              <div className="space-y-2">
+                <p className="text-white font-bold uppercase tracking-widest text-xs">Private Intelligence</p>
+                <p className="text-white/30 text-[10px] font-mono uppercase leading-relaxed">
+                  Detailed AI analysis results are exclusively visible to the <span className="text-white/60">Issue Author</span> when accessed via <span className="text-white/60">Pipeline Concerns</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );
