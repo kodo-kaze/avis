@@ -57,34 +57,33 @@ graph TD
 ### ⚡ User Activity Diagram
 
 ```mermaid
-activityDiagram
-    start
-    :Access Workspace;
-    if (Is Logged In?) then (yes)
-      :View All Issues;
-      split
-        :Select Issue;
-        :Submit Opinion;
-        if (Opinions >= 3?) then (yes)
-          :Trigger SYNAPSE-AI;
-          :Generate Intelligence;
-        else (no)
-          :Wait for Consensus;
-        endif
-      split again
-        :Raise New Issue;
-        :Set Privacy Level;
-        if (Is Private?) then (yes)
-          :Generate Direct Link;
-          :Share with Stakeholders;
-        else (no)
-          :Publish to All Issues;
-        endif
-      end split
-    else (no)
-      :Redirect to Clerk Auth;
-    endif
-    stop
+flowchart TD
+    Start([Start]) --> Access[Access Workspace]
+    Access --> IsLogged{Is Logged In?}
+    IsLogged -- Yes --> View[View All Issues]
+    IsLogged -- No --> Auth[Redirect to Clerk Auth]
+    Auth --> Stop([Stop])
+
+    View --> Choice{Action}
+    Choice --> Select[Select Issue]
+    Choice --> Raise[Raise New Issue]
+
+    Select --> Submit[Submit Opinion]
+    Submit --> Count{Opinions >= 3?}
+    Count -- Yes --> AI[Trigger SYNAPSE-AI]
+    AI --> Intelligence[Generate Intelligence]
+    Count -- No --> Consensus[Wait for Consensus]
+    
+    Raise --> Privacy[Set Privacy Level]
+    Privacy --> IsPrivate{Is Private?}
+    IsPrivate -- Yes --> Link[Generate Direct Link]
+    Link --> Share[Share with Stakeholders]
+    IsPrivate -- No --> Publish[Publish to All Issues]
+
+    Intelligence --> Stop
+    Consensus --> Stop
+    Share --> Stop
+    Publish --> Stop
 ```
 
 ---
