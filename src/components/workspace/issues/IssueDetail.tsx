@@ -26,22 +26,25 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
     if (!selectedIssue) return;
     try {
       const data = await fetchIssueDetails(selectedIssue.id);
-      setSelectedIssue({
-        id: data.id.toString(),
-        title: data.title,
-        description: data.description,
-        status: data.status,
-        createdAt: data.created_at,
-        author: data.author,
-        analysisResult: data.analysis_result,
-        opinions: data.opinions.map((o: { id: number | string; issue_id: number | string; text: string; author: string; created_at: string }) => ({
-          id: o.id.toString(),
-          issueId: o.issue_id.toString(),
-          text: o.text,
-          author: o.author,
-          createdAt: o.created_at
-        }))
-      }, selectionSource || undefined);
+      // Only update if we still have a selected issue (prevents race condition/loop when going back)
+      if (useWorkspaceStore.getState().selectedIssue) {
+        setSelectedIssue({
+          id: data.id.toString(),
+          title: data.title,
+          description: data.description,
+          status: data.status,
+          createdAt: data.created_at,
+          author: data.author,
+          analysisResult: data.analysis_result,
+          opinions: data.opinions.map((o: { id: number | string; issue_id: number | string; text: string; author: string; created_at: string }) => ({
+            id: o.id.toString(),
+            issueId: o.issue_id.toString(),
+            text: o.text,
+            author: o.author,
+            createdAt: o.created_at
+          }))
+        }, selectionSource || undefined);
+      }
     } catch (err) {
       console.error("Failed to refresh issue details", err);
     }
