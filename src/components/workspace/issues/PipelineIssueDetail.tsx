@@ -16,14 +16,14 @@ export default function PipelineIssueDetail() {
   const [opinionText, setOpinionText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const currentIssueIdRef = React.useRef(selectedIssue.id);
+  const currentIssueIdRef = React.useRef(selectedIssue?.id || null);
 
   // Keep ref in sync with selectedIssue.id
   useEffect(() => {
     if (selectedIssue) {
       currentIssueIdRef.current = selectedIssue.id;
     }
-  }, [selectedIssue?.id]);
+  }, [selectedIssue]);
 
   const refreshDetails = useCallback(async () => {
     if (!selectedIssue) return;
@@ -158,6 +158,10 @@ export default function PipelineIssueDetail() {
                 placeholder="Share perspective..."
                 className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all resize-none h-20"
               />
+              <div className="flex items-center justify-between mt-1 px-1">
+                {error && <span className="text-[9px] text-red-400 font-medium">{error}</span>}
+                <div /> {/* Spacer */}
+              </div>
               <button
                 type="submit"
                 disabled={isSubmitting || !opinionText.trim()}

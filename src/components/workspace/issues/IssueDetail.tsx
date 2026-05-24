@@ -20,14 +20,14 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
   const [opinionText, setOpinionText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const currentIssueIdRef = React.useRef(selectedIssue.id);
+  const currentIssueIdRef = React.useRef(selectedIssue?.id || null);
 
   // Keep ref in sync with selectedIssue.id
   useEffect(() => {
     if (selectedIssue) {
       currentIssueIdRef.current = selectedIssue.id;
     }
-  }, [selectedIssue?.id]);
+  }, [selectedIssue]);
 
   const refreshDetails = useCallback(async () => {
     if (!selectedIssue) return;
