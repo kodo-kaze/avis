@@ -15,6 +15,7 @@ import RaiseIssue from "@/components/workspace/issues/RaiseIssue";
 import PipelineConcerns from "@/components/workspace/issues/PipelineConcerns";
 import PipelineIssueDetail from "@/components/workspace/issues/PipelineIssueDetail";
 import IssueDetail from "@/components/workspace/issues/IssueDetail";
+import About from "@/components/workspace/About";
 
 import { useWorkspace } from '@/hooks/useWorkspace';
 
@@ -165,13 +166,15 @@ export default function WorkspaceClient() {
                   <PipelineConcerns />
                 )}
               </div>
+            ) : activePage === "about" ? (
+              <About />
             ) : null}
           </AnimatePresence>
         </main>
 
         {/* Footer */}
-        <footer className="px-12 py-8 flex justify-between items-end pointer-events-none">
-          <div className="space-y-1">
+        <footer className="px-12 py-8 flex justify-between items-end">
+          <div className="space-y-1 pointer-events-none">
             <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">
               Status
             </p>
@@ -179,18 +182,21 @@ export default function WorkspaceClient() {
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
 
-              <p className="text-xs text-white/40 font-mono tracking-tight">
+              <p className="text-xs text-white/40 font-mono tracking-tight text-wrap-balance">
                 AI PIPELINE READY
               </p>
             </div>
           </div>
 
-          <div className="text-right">
-            <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">
+          <div 
+            onClick={() => handlePageChange("about")}
+            className="text-right group cursor-pointer"
+          >
+            <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold group-hover:text-white/40 transition-colors">
               Avis Engine v1.0
             </p>
 
-            <p className="text-xs text-white/40 font-mono">
+            <p className="text-xs text-white/40 font-mono group-hover:text-white transition-colors">
               SYNAPSE-AI-NODE-01
             </p>
           </div>
