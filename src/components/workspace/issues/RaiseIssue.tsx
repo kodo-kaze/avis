@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Send, Loader2, AlertCircle, CheckCircle2, FileText, X } from 'lucide-react';
+import { Upload, Send, Loader2, AlertCircle, CheckCircle2, FileText, X, Lock, Unlock } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useWorkspaceStore } from '@/store/workspace.store';
 import { createIssue } from '@/services/workspace.service';
@@ -13,6 +13,7 @@ export default function RaiseIssue() {
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -37,6 +38,7 @@ export default function RaiseIssue() {
         title,
         description: file ? `${description} (Attachment: ${file.name})` : description,
         author: authorName,
+        isPrivate,
       });
       
       addIssue(newIssue);
@@ -44,6 +46,7 @@ export default function RaiseIssue() {
       setSuccess(true);
       setTitle('');
       setDescription('');
+      setIsPrivate(false);
       setFile(null);
       
       setTimeout(() => setSuccess(false), 5000);
@@ -103,38 +106,60 @@ export default function RaiseIssue() {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Supporting Documentation (Optional)</label>
-            <div 
-              onClick={() => fileInputRef.current?.click()}
-              className="group cursor-pointer border border-dashed border-white/10 hover:border-white/30 rounded-xl p-4 transition-all bg-white/5 hover:bg-white/[0.08] flex items-center justify-center gap-3"
-            >
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                className="hidden" 
-              />
-              {file ? (
-                <div className="flex items-center gap-3 text-white">
-                  <FileText size={18} className="text-white/60" />
-                  <span className="text-xs font-medium">{file.name}</span>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFile(null);
-                    }}
-                    className="p-1 hover:bg-white/10 rounded-full"
-                  >
-                    <X size={12} />
-                  </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Privacy Level</label>
+              <div 
+                onClick={() => setIsPrivate(!isPrivate)}
+                className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${
+                  isPrivate 
+                  ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' 
+                  : 'bg-white/5 border-white/10 text-white/40 hover:border-white/20'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {isPrivate ? <Lock size={18} /> : <Unlock size={18} />}
+                  <span className="text-xs font-bold uppercase tracking-widest">{isPrivate ? 'Private' : 'Public'}</span>
                 </div>
-              ) : (
-                <div className="flex items-center gap-3 text-white/40 group-hover:text-white transition-colors">
-                  <Upload size={18} />
-                  <span className="text-xs font-medium">Upload relevant logs or data</span>
+                <div className={`w-8 h-4 rounded-full relative transition-all ${isPrivate ? 'bg-rose-500' : 'bg-white/10'}`}>
+                  <div className={`absolute top-1 w-2 h-2 bg-white rounded-full transition-all ${isPrivate ? 'right-1' : 'left-1'}`} />
                 </div>
-              )}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] ml-1">Documentation</label>
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className="group cursor-pointer border border-dashed border-white/10 hover:border-white/30 rounded-xl p-4 transition-all bg-white/5 hover:bg-white/[0.08] flex items-center justify-center gap-3"
+              >
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  className="hidden" 
+                />
+                {file ? (
+                  <div className="flex items-center gap-3 text-white">
+                    <FileText size={18} className="text-white/60" />
+                    <span className="text-xs font-medium truncate max-w-[100px]">{file.name}</span>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFile(null);
+                      }}
+                      className="p-1 hover:bg-white/10 rounded-full"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 text-white/40 group-hover:text-white transition-colors">
+                    <Upload size={18} />
+                    <span className="text-xs font-medium">Upload relevant logs</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

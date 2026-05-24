@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum, JSON
+from sqlalchemy import Column, Integer, String, DateTime, Enum, JSON, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.config.database import Base
@@ -16,6 +16,7 @@ class Issue(Base):
     title = Column(String, index=True, nullable=False)
     description = Column(String, nullable=False)
     status = Column(String, default="Open")
+    is_private = Column(Boolean, default=False)
     author = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     analysis_result = Column(JSON, nullable=True)

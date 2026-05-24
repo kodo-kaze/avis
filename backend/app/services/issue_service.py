@@ -36,7 +36,8 @@ class IssueService:
         db_issue = Issue(
             title=issue.title,
             description=issue.description,
-            author=issue.author
+            author=issue.author,
+            is_private=issue.is_private
         )
         db.add(db_issue)
         db.commit()
@@ -45,7 +46,7 @@ class IssueService:
 
     @staticmethod
     def get_issues(db: Session) -> List[Issue]:
-        return db.query(Issue).order_by(Issue.created_at.desc()).all()
+        return db.query(Issue).filter(Issue.is_private == False).order_by(Issue.created_at.desc()).all()
 
     @staticmethod
     def get_issue(issue_id: int, db: Session) -> Issue:

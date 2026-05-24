@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MessageSquare, Send, Loader2, CheckCircle2, Trash2, CheckCircle, RotateCcw } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Send, Loader2, CheckCircle2, Trash2, CheckCircle, RotateCcw, Share2, Lock } from 'lucide-react';
 import { useIssueOperations } from '@/hooks/useIssueOperations';
 import ResultsView from '@/components/workspace/ResultsView';
 
@@ -24,17 +24,24 @@ export default function PipelineIssueDetail() {
     setSelectedIssue,
   } = useIssueOperations();
 
+  const [copied, setCopied] = useState(false);
+
   useEffect(() => {
     refreshDetails();
   }, [refreshDetails]);
 
   if (!selectedIssue) return null;
 
+  const handleShare = () => {
+    const url = `${window.location.origin}/workspace?issueId=${selectedIssue.id}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   // We need currentUserName here for author actions and contribution check
-  // Note: useIssueOperations already has access to useUser() internally if needed, 
-  // but for consistency with IssueDetail we'll just check selectedIssue.author
   const hasAlreadyContributed = selectedIssue.opinions?.some(
-    (opinion) => opinion.author === selectedIssue.author // This is a bit simplified, but accurate for this context
+    (opinion) => opinion.author === selectedIssue.author
   );
 
   return (
@@ -56,40 +63,57 @@ export default function PipelineIssueDetail() {
               <ArrowLeft size={16} />
             </button>
             <div className="overflow-hidden">
-              <h3 className="text-sm font-black uppercase tracking-tight truncate">{selectedIssue.title}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-black uppercase tracking-tight truncate">{selectedIssue.title}</h3>
+                {selectedIssue.isPrivate && <Lock size={12} className="text-rose-400/80" />}
+              </div>
               <p className="text-[9px] font-mono text-white/30 uppercase tracking-widest">Pipeline Concern Detail</p>
             </div>
           </div>
 
-          {/* Author Actions (Always author in this view since it's "My Issues") */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {selectedIssue.status !== 'Resolved' ? (
-              <button
-                onClick={handleResolve}
-                disabled={isResolving}
-                className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
-                title="Resolve Issue"
-              >
-                {isResolving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
-              </button>
-            ) : (
-              <button
-                onClick={handleReopen}
-                disabled={isReopening}
-                className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 hover:bg-amber-500/20 transition-all disabled:opacity-50"
-                title="Reopen Issue"
-              >
-                {isReopening ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
-              </button>
-            )}
             <button
-              onClick={() => handleDelete()}
-              disabled={isDeleting}
-              className="p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-50"
-              title="Delete Issue"
+              onClick={handleShare}
+              className={`p-2 rounded-lg transition-all ${
+                copied 
+                ? 'bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
+                : 'bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white'
+              }`}
+              title="Copy Share Link"
             >
-              {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+              {copied ? <CheckCircle size={14} /> : <Share2 size={14} />}
             </button>
+
+            {/* Author Actions */}
+            <div className="flex items-center gap-2">
+              {selectedIssue.status !== 'Resolved' ? (
+                <button
+                  onClick={handleResolve}
+                  disabled={isResolving}
+                  className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                  title="Resolve Issue"
+                >
+                  {isResolving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                </button>
+              ) : (
+                <button
+                  onClick={handleReopen}
+                  disabled={isReopening}
+                  className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                  title="Reopen Issue"
+                >
+                  {isReopening ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
+                </button>
+              )}
+              <button
+                onClick={() => handleDelete()}
+                disabled={isDeleting}
+                className="p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-50"
+                title="Delete Issue"
+              >
+                {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+              </button>
+            </div>
           </div>
         </div>
 

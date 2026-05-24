@@ -21,6 +21,7 @@ class IssueBase(BaseModel):
     title: str
     description: str
     author: str
+    is_private: Optional[bool] = False
 
 class IssueCreate(IssueBase):
     pass

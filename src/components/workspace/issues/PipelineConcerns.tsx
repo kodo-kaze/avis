@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2, Clock, User as UserIcon, MessageSquare, ChevronRight } from 'lucide-react';
+import { Loader2, Clock, User as UserIcon, MessageSquare, ChevronRight, Lock } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useWorkspaceStore } from '@/store/workspace.store';
 import { fetchMyIssues } from '@/services/workspace.service';
@@ -79,14 +79,17 @@ export default function PipelineConcerns() {
                 onClick={() => setSelectedIssue(issue, 'pipeline')}
                 className="group flex items-center justify-between p-5 bg-black/40 backdrop-blur-xl border border-white/5 hover:border-white/20 rounded-2xl transition-all cursor-pointer"
               >
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 overflow-hidden">
                   <div className="flex items-center gap-3">
-                    <span className={`w-1.5 h-1.5 rounded-full ${
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                       issue.status === 'Open' ? 'bg-red-500 animate-pulse' :
                       issue.status === 'Resolved' ? 'bg-emerald-500' :
                       'bg-amber-500'
                     }`} />
-                    <h4 className="text-sm font-bold text-white group-hover:text-white transition-colors">{issue.title}</h4>
+                    <h4 className="text-sm font-bold text-white group-hover:text-white transition-colors truncate flex items-center gap-2">
+                      {issue.title}
+                      {issue.isPrivate && <Lock size={12} className="text-white/20" />}
+                    </h4>
                   </div>
                   <div className="flex items-center gap-4 text-[10px] font-mono text-white/30 uppercase tracking-widest">
                     <span className="flex items-center gap-1.5"><Clock size={10} /> {new Date(issue.createdAt).toLocaleDateString()}</span>

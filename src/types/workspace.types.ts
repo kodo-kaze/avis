@@ -13,6 +13,7 @@ export interface Issue {
   title: string;
   description: string;
   status: 'Open' | 'Resolved' | 'Pending';
+  isPrivate?: boolean;
   createdAt: string;
   author: string;
   analysisResult?: AnalysisResult;

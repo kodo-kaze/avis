@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, User, Clock, MessageSquare, Send, Loader2, Trash2, CheckCircle, RotateCcw } from 'lucide-react';
+import { ArrowLeft, User, Clock, MessageSquare, Send, Loader2, Trash2, CheckCircle, RotateCcw, Share2, Lock } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useIssueOperations } from '@/hooks/useIssueOperations';
 
@@ -28,11 +28,20 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
     selectedIssue,
   } = useIssueOperations();
 
+  const [copied, setCopied] = useState(false);
+
   useEffect(() => {
     refreshDetails();
   }, [refreshDetails]);
 
   if (!selectedIssue) return null;
+
+  const handleShare = () => {
+    const url = `${window.location.origin}/workspace?issueId=${selectedIssue.id}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const currentUserName = user?.fullName || user?.username || 'Anonymous User';
   const hasAlreadyContributed = selectedIssue.opinions?.some(
@@ -64,44 +73,64 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
               }`}>
                 {selectedIssue.status}
               </span>
+              {selectedIssue.isPrivate && (
+                <span className="flex items-center gap-1 px-2 py-0.5 bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-md text-[9px] font-black uppercase tracking-widest">
+                  <Lock size={10} /> Private
+                </span>
+              )}
               <p className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">Issue ID: {selectedIssue.id}</p>
             </div>
             <h2 className="text-3xl font-black tracking-tight uppercase text-wrap-balance">{selectedIssue.title}</h2>
           </div>
         </div>
 
-        {/* Author Actions */}
-        {currentUserName === selectedIssue.author && (
-          <div className="flex items-center gap-3">
-            {selectedIssue.status !== 'Resolved' ? (
+        {/* Action Bar */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleShare}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              copied 
+              ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]' 
+              : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            {copied ? <CheckCircle size={16} /> : <Share2 size={16} />}
+            <span>{copied ? 'Link Copied' : 'Share Link'}</span>
+          </button>
+
+          {/* Author Actions */}
+          {currentUserName === selectedIssue.author && (
+            <div className="flex items-center gap-3 pl-3 border-l border-white/10">
+              {selectedIssue.status !== 'Resolved' ? (
+                <button
+                  onClick={handleResolve}
+                  disabled={isResolving}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                >
+                  {isResolving ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                  <span className="text-[10px] font-black uppercase tracking-widest">Resolve</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleReopen}
+                  disabled={isReopening}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                >
+                  {isReopening ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
+                  <span className="text-[10px] font-black uppercase tracking-widest">Reopen</span>
+                </button>
+              )}
               <button
-                onClick={handleResolve}
-                disabled={isResolving}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                onClick={() => handleDelete(onBack)}
+                disabled={isDeleting}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-50"
               >
-                {isResolving ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
-                <span className="text-[10px] font-black uppercase tracking-widest">Resolve</span>
+                {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                <span className="text-[10px] font-black uppercase tracking-widest">Delete</span>
               </button>
-            ) : (
-              <button
-                onClick={handleReopen}
-                disabled={isReopening}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 hover:bg-amber-500/20 transition-all disabled:opacity-50"
-              >
-                {isReopening ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
-                <span className="text-[10px] font-black uppercase tracking-widest">Reopen</span>
-              </button>
-            )}
-            <button
-              onClick={() => handleDelete(onBack)}
-              disabled={isDeleting}
-              className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-50"
-            >
-              {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-              <span className="text-[10px] font-black uppercase tracking-widest">Delete</span>
-            </button>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto space-y-8">

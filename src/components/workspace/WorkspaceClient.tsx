@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import AnalysisForm from "@/components/workspace/AnalysisForm";
 import ResultsView from "@/components/workspace/ResultsView";
 import { AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
 import { LayoutDashboard, ArrowLeft } from 'lucide-react';
 import { AnalysisResult } from '@/lib/types';
@@ -18,6 +19,7 @@ import IssueDetail from "@/components/workspace/issues/IssueDetail";
 import About from "@/components/workspace/About";
 
 import { useWorkspace } from '@/hooks/useWorkspace';
+import { fetchIssueDetails } from '@/services/workspace.service';
 
 const Scene = dynamic(
   () => import("@/components/ui/Marble").then((mod) => mod.Scene),
@@ -27,6 +29,8 @@ const Scene = dynamic(
 );
 
 export default function WorkspaceClient() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const {
     analysisResult,
     setAnalysisResult,
@@ -38,9 +42,30 @@ export default function WorkspaceClient() {
 
   const [activePage, setActivePage] = useState("analysis");
 
+  // Handle Deep Linking
+  useEffect(() => {
+    const issueId = searchParams.get('issueId');
+    if (issueId && !selectedIssue) {
+      const loadLinkedIssue = async () => {
+        try {
+          const issue = await fetchIssueDetails(issueId);
+          setSelectedIssue(issue, 'all');
+          setActivePage('issues');
+        } catch (err) {
+          console.error("Failed to load linked issue", err);
+        }
+      };
+      loadLinkedIssue();
+    }
+  }, [searchParams, setSelectedIssue, selectedIssue]);
+
   const handlePageChange = (page: string) => {
     setActivePage(page);
     setSelectedIssue(null);
+    // Clear URL params when navigating manually
+    if (searchParams.get('issueId')) {
+      router.push('/workspace');
+    }
   };
 
   const handleAnalysisComplete = (data: AnalysisResult) => {

@@ -21,6 +21,7 @@ interface BackendIssue {
   title: string;
   description: string;
   status: 'Open' | 'Resolved' | 'Pending';
+  is_private: boolean;
   author: string;
   created_at: string;
   analysis_result?: AnalysisResult;
@@ -42,6 +43,7 @@ const mapIssue = (i: BackendIssue): Issue => ({
   title: i.title,
   description: i.description,
   status: i.status,
+  isPrivate: i.is_private,
   author: i.author,
   createdAt: i.created_at,
   analysisResult: i.analysis_result,
@@ -64,8 +66,13 @@ export const analyzeText = async (text: string): Promise<AnalysisResult> => {
   return response.data;
 };
 
-export const createIssue = async (issue: { title: string; description: string; author: string }): Promise<Issue> => {
-  const response = await axios.post(`${API_BASE}/issues/`, issue);
+export const createIssue = async (issue: { title: string; description: string; author: string; isPrivate?: boolean }): Promise<Issue> => {
+  const response = await axios.post(`${API_BASE}/issues/`, {
+    title: issue.title,
+    description: issue.description,
+    author: issue.author,
+    is_private: issue.isPrivate
+  });
   return mapIssue(response.data);
 };
 
