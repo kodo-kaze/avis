@@ -12,9 +12,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
-# Download NLTK data required by the app
-RUN python -m nltk.downloader punkt punkt_tab stopwords || true
-
 # Copy backend code contents into the WORKDIR
 COPY backend/ .
 

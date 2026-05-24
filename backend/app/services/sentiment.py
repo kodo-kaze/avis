@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, Dict, List
 
 from app.config.settings import settings
@@ -11,7 +12,6 @@ client = InferenceClient(
 
 MODEL_NAME = "cardiffnlp/twitter-roberta-base-sentiment"
 
-
 # Label mapping
 LABEL_MAPPING = {
     "LABEL_0": "NEGATIVE",
@@ -19,11 +19,9 @@ LABEL_MAPPING = {
     "LABEL_2": "POSITIVE",
 }
 
-
 async def analyze_sentiment(
     comments: List[str]
 ) -> List[Dict[str, Any]]:
-
     # Empty input
     if not comments:
         return []
@@ -33,39 +31,37 @@ async def analyze_sentiment(
         print("HF_TOKEN missing")
         return []
 
+    # Limit processing to top 20 comments to prevent timeouts and heavy API usage
+    # This still gives a good representative sample for the distribution
+    comments_to_process = comments[:20]
+
     try:
+        # Define a helper for concurrent execution
+        def get_sentiment(comment: str):
+            try:
+                result = client.text_classification(
+                    comment,
+                    model=MODEL_NAME,
+                )
+                if not result:
+                    return None
+                
+                best_match = max(result, key=lambda x: x.score)
+                return {
+                    "comment": comment,
+                    "label": LABEL_MAPPING.get(best_match.label, "UNKNOWN"),
+                    "score": float(best_match.score)
+                }
+            except Exception as e:
+                print(f"Error for comment '{comment[:20]}...': {e}")
+                return None
 
-        formatted_results = []
-
-        # Process comments one by one
-        # (more stable than batch inference for HF APIs)
-        for comment in comments:
-
-            result = client.text_classification(
-                comment,
-                model=MODEL_NAME,
-            )
-
-            # Handle list response safely
-            if not result:
-                continue
-
-            # Find best score
-            best_match = max(
-                result,
-                key=lambda x: x.score
-            )
-
-            label = LABEL_MAPPING.get(
-                best_match.label,
-                "UNKNOWN"
-            )
-
-            formatted_results.append({
-                "comment": comment,
-                "label": label,
-                "score": float(best_match.score)
-            })
+        # Run all sentiment requests concurrently
+        tasks = [asyncio.to_thread(get_sentiment, c) for c in comments_to_process]
+        results = await asyncio.gather(*tasks)
+        
+        # Filter out None results
+        formatted_results = [r for r in results if r is not None]
 
         return formatted_results
 

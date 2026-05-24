@@ -22,6 +22,7 @@ class AnalysisResponse(BaseModel):
     topics: List[TopicResult]
     keywords: List[str]
     wordcloud_url: Optional[str] = None
+    churn_risk_score: float | None = None
 
 class TextInput(BaseModel):
     text: str

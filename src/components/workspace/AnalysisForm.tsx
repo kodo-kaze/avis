@@ -5,6 +5,10 @@ import { motion } from 'framer-motion';
 import { Upload, FileText, Send, Loader2, X } from 'lucide-react';
 
 import { AnalysisResult } from '@/lib/types';
+import {
+  uploadFileForAnalysis,
+  analyzeText,
+} from "@/services/workspace.service";
 
 interface AnalysisFormProps {
   onAnalysisComplete: (data: AnalysisResult) => void;
@@ -18,7 +22,7 @@ export default function AnalysisForm({ onAnalysisComplete }: AnalysisFormProps) 
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000';
+  // const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -27,43 +31,49 @@ export default function AnalysisForm({ onAnalysisComplete }: AnalysisFormProps) 
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  const handleSubmit = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
 
-    try {
-      let response;
-      if (activeTab === 'upload' && file) {
-        const formData = new FormData();
-        formData.append('file', file);
-        response = await fetch(`${API_BASE}/upload`, {
-          method: 'POST',
-          body: formData,
-        });
-      } else if (activeTab === 'text' && text.trim()) {
-        response = await fetch(`${API_BASE}/analyze-text`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
-        });
-      } else {
-        throw new Error('Please provide a file or text to analyze.');
-      }
+  setLoading(true);
+  setError(null);
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.detail || 'Analysis failed.');
-      }
+  try {
+    let data;
 
-      const data = await response.json();
-      onAnalysisComplete(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Analysis failed.');
-    } finally {
-      setLoading(false);
+    if (activeTab === "upload" && file) {
+      data = await uploadFileForAnalysis(file);
     }
-  };
+
+    else if (
+      activeTab === "text" &&
+      text.trim()
+    ) {
+      data = await analyzeText(text);
+    }
+
+    else {
+      throw new Error(
+        "Please provide valid input"
+      );
+    }
+
+    onAnalysisComplete(data);
+  }
+
+  catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Analysis failed"
+    );
+  }
+
+  finally {
+    setLoading(false);
+  }
+};
 
   return (
     <motion.div
