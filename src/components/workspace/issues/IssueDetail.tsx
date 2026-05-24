@@ -128,7 +128,7 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
         <div className="space-y-8">
           
           {/* Main Content Card */}
-          <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 space-y-6">
+          <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 space-y-6">
             <div className="space-y-4">
               <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Issue Description</h3>
               <p className="text-white/90 leading-relaxed text-lg">
@@ -175,7 +175,7 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
 
             {/* Opinion Input */}
             {hasAlreadyContributed ? (
-              <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-6 text-center">
+              <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 text-center border-dashed">
                 <p className="text-emerald-400/80 text-xs font-mono uppercase tracking-[0.2em] font-bold">
                   Perspective Shared …
                 </p>
@@ -189,7 +189,7 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
                   value={opinionText}
                   onChange={(e) => setOpinionText(e.target.value)}
                   placeholder="Share your perspective on this issue…"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all resize-none font-medium h-32"
+                  className="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all resize-none font-medium h-32"
                 />
                 <div className="absolute bottom-4 right-4 flex items-center gap-4">
                   {error && <span className="text-xs text-red-400 font-medium">{error}</span>}
@@ -214,7 +214,7 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
-                    className="bg-white/5 border border-white/5 rounded-2xl p-6 space-y-3 relative overflow-hidden group"
+                    className="bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl p-6 space-y-3 relative overflow-hidden group"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-2">

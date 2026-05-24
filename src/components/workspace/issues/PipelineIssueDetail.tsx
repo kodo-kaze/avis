@@ -157,7 +157,7 @@ export default function PipelineIssueDetail() {
             </h4>
 
             {hasAlreadyContributed ? (
-              <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-4 text-center">
+              <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-xl p-4 text-center border-dashed">
                 <p className="text-[10px] text-emerald-400/80 font-mono uppercase tracking-widest leading-relaxed font-bold">
                   Contribution Submitted …
                 </p>
@@ -168,7 +168,7 @@ export default function PipelineIssueDetail() {
                   value={opinionText}
                   onChange={(e) => setOpinionText(e.target.value)}
                   placeholder="Share Perspective…"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all resize-none h-20"
+                  className="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all resize-none h-20"
                 />
                 <div className="flex items-center justify-between mt-1 px-1">
                   {error && <span className="text-[9px] text-red-400 font-medium">{error}</span>}
@@ -186,12 +186,12 @@ export default function PipelineIssueDetail() {
 
             <div className="space-y-3">
               {selectedIssue.opinions?.map((opinion) => (
-                <div key={opinion.id} className="bg-white/5 border border-white/5 rounded-xl p-4 space-y-2">
+                <div key={opinion.id} className="bg-black/40 backdrop-blur-xl border border-white/5 rounded-xl p-4 space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] font-bold text-white/60">{opinion.author}</span>
                     <span className="text-[8px] font-mono text-white/20">{new Date(opinion.createdAt).toLocaleDateString()}</span>
                   </div>
-                  <p className="text-[11px] text-white/60 leading-relaxed">{opinion.text}</p>
+                  <p className="text-[11px] text-white/80 leading-relaxed">{opinion.text}</p>
                 </div>
               ))}
             </div>

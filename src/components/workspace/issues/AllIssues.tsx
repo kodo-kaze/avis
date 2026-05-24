@@ -90,7 +90,7 @@ export default function AllIssues() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
               onClick={() => setSelectedIssue(issue, 'all')}
-              className="group relative bg-black/40 backdrop-blur-xl border border-white/10 hover:border-white/40 rounded-2xl p-6 transition-all cursor-pointer hover:translate-x-1"
+              className="group relative bg-black/60 backdrop-blur-xl border border-white/10 hover:border-white/40 rounded-2xl p-6 transition-all cursor-pointer hover:translate-x-1"
             >
               <div className="flex justify-between items-start gap-4">
                 <div className="flex-grow space-y-3">
