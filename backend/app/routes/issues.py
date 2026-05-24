@@ -76,3 +76,24 @@ async def create_opinion(issue_id: int, opinion: OpinionCreate, db: Session = De
             print(f"Automated pipeline failed for issue {issue_id}: {str(e)}")
     
     return db_opinion
+
+@router.delete("/{issue_id}")
+def delete_issue(issue_id: int, db: Session = Depends(get_db)):
+    db_issue = db.query(Issue).filter(Issue.id == issue_id).first()
+    if not db_issue:
+        raise HTTPException(status_code=404, detail="Issue not found")
+    
+    db.delete(db_issue)
+    db.commit()
+    return {"detail": "Issue deleted successfully"}
+
+@router.patch("/{issue_id}/resolve", response_model=IssueResponse)
+def resolve_issue(issue_id: int, db: Session = Depends(get_db)):
+    db_issue = db.query(Issue).filter(Issue.id == issue_id).first()
+    if not db_issue:
+        raise HTTPException(status_code=404, detail="Issue not found")
+    
+    db_issue.status = "Resolved"
+    db.commit()
+    db.refresh(db_issue)
+    return db_issue

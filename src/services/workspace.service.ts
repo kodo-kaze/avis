@@ -63,3 +63,13 @@ export const createOpinion = async (issueId: string, opinion: { text: string; au
   const response = await axios.post(`${API_BASE}/issues/${issueId}/opinions`, opinion);
   return response.data;
 };
+
+export const resolveIssue = async (issueId: string) => {
+  const response = await axios.patch(`${API_BASE}/issues/${issueId}/resolve`);
+  return response.data;
+};
+
+export const deleteIssue = async (issueId: string) => {
+  const response = await axios.delete(`${API_BASE}/issues/${issueId}`);
+  return response.data;
+};

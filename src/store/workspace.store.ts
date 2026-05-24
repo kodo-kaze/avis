@@ -33,6 +33,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
 
   setIssues: (issues) => set({ issues }),
 
+  removeIssue: (issueId) => set((state) => ({
+    issues: state.issues.filter((i) => i.id !== issueId)
+  })),
+
   setSelectedIssue: (issue, source) => set({ 
     selectedIssue: issue, 
     selectionSource: source || null 

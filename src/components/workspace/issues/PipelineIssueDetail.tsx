@@ -2,19 +2,24 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MessageSquare, Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Send, Loader2, CheckCircle2, Trash2, CheckCircle } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useWorkspaceStore } from '@/store/workspace.store';
-import { createOpinion, fetchIssueDetails } from '@/services/workspace.service';
+import { createOpinion, fetchIssueDetails, deleteIssue, resolveIssue } from '@/services/workspace.service';
 import ResultsView from '@/components/workspace/ResultsView';
 
 export default function PipelineIssueDetail() {
   const { user } = useUser();
   const selectedIssue = useWorkspaceStore((state) => state.selectedIssue);
   const setSelectedIssue = useWorkspaceStore((state) => state.setSelectedIssue);
+  const removeIssueFromStore = useWorkspaceStore((state) => state.removeIssue);
   
+  const currentUserName = user?.fullName || user?.username || 'Anonymous User';
+
   const [opinionText, setOpinionText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isResolving, setIsResolving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const currentIssueIdRef = React.useRef(selectedIssue?.id || null);
 
@@ -61,6 +66,37 @@ export default function PipelineIssueDetail() {
     refreshDetails();
   }, [refreshDetails]);
 
+  const handleResolve = async () => {
+    if (!selectedIssue) return;
+    setIsResolving(true);
+    try {
+      await resolveIssue(selectedIssue.id);
+      await refreshDetails();
+    } catch (err) {
+      console.error("Failed to resolve issue", err);
+      setError("Failed to resolve issue.");
+    } finally {
+      setIsResolving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedIssue) return;
+    if (!confirm("Are you sure you want to delete this issue? This action cannot be undone.")) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteIssue(selectedIssue.id);
+      removeIssueFromStore(selectedIssue.id);
+      setSelectedIssue(null);
+    } catch (err) {
+      console.error("Failed to delete issue", err);
+      setError("Failed to delete issue.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleSubmitOpinion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedIssue || !opinionText.trim()) return;
@@ -71,7 +107,7 @@ export default function PipelineIssueDetail() {
     try {
       await createOpinion(selectedIssue.id, {
         text: opinionText,
-        author: user?.fullName || user?.username || 'Anonymous User',
+        author: currentUserName,
       });
       setOpinionText('');
       await refreshDetails();
@@ -84,7 +120,6 @@ export default function PipelineIssueDetail() {
 
   if (!selectedIssue) return null;
 
-  const currentUserName = user?.fullName || user?.username || 'Anonymous User';
   const hasAlreadyContributed = selectedIssue.opinions?.some(
     (opinion) => opinion.author === currentUserName
   );
@@ -100,17 +135,43 @@ export default function PipelineIssueDetail() {
       
       <div className="relative z-10 flex flex-col h-full space-y-6 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setSelectedIssue(null)}
-            className="p-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all text-white/60 hover:text-white"
-          >
-            <ArrowLeft size={16} />
-          </button>
-          <div className="overflow-hidden">
-            <h3 className="text-sm font-black uppercase tracking-tight truncate">{selectedIssue.title}</h3>
-            <p className="text-[9px] font-mono text-white/30 uppercase tracking-widest">Pipeline Concern Detail</p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 overflow-hidden">
+            <button
+              onClick={() => setSelectedIssue(null)}
+              className="p-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all text-white/60 hover:text-white flex-shrink-0"
+            >
+              <ArrowLeft size={16} />
+            </button>
+            <div className="overflow-hidden">
+              <h3 className="text-sm font-black uppercase tracking-tight truncate">{selectedIssue.title}</h3>
+              <p className="text-[9px] font-mono text-white/30 uppercase tracking-widest">Pipeline Concern Detail</p>
+            </div>
           </div>
+
+          {/* Actions */}
+          {currentUserName === selectedIssue.author && (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {selectedIssue.status !== 'Resolved' && (
+                <button
+                  onClick={handleResolve}
+                  disabled={isResolving}
+                  className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                  title="Resolve Issue"
+                >
+                  {isResolving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                </button>
+              )}
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-50"
+                title="Delete Issue"
+              >
+                {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex-grow overflow-y-auto pr-2 space-y-8 custom-scrollbar">

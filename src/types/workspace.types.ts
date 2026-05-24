@@ -33,5 +33,6 @@ export interface WorkspaceState {
   resetWorkspace: () => void;
   addIssue: (issue: Issue) => void;
   setIssues: (issues: Issue[]) => void;
+  removeIssue: (issueId: string) => void;
   setSelectedIssue: (issue: Issue | null, source?: 'all' | 'pipeline') => void;
 }

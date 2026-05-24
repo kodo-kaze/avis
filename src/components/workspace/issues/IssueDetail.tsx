@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, User, Clock, MessageSquare, Send, Loader2 } from 'lucide-react';
+import { ArrowLeft, User, Clock, MessageSquare, Send, Loader2, Trash2, CheckCircle } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useWorkspaceStore } from '@/store/workspace.store';
-import { createOpinion, fetchIssueDetails } from '@/services/workspace.service';
+import { createOpinion, fetchIssueDetails, deleteIssue, resolveIssue } from '@/services/workspace.service';
 
 interface IssueDetailProps {
   onBack: () => void;
@@ -16,9 +16,14 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
   const selectedIssue = useWorkspaceStore((state) => state.selectedIssue);
   const selectionSource = useWorkspaceStore((state) => state.selectionSource);
   const setSelectedIssue = useWorkspaceStore((state) => state.setSelectedIssue);
+  const removeIssueFromStore = useWorkspaceStore((state) => state.removeIssue);
   
+  const currentUserName = user?.fullName || user?.username || 'Anonymous User';
+
   const [opinionText, setOpinionText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isResolving, setIsResolving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const currentIssueIdRef = React.useRef(selectedIssue?.id || null);
 
@@ -65,6 +70,37 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
     refreshDetails();
   }, [refreshDetails]);
 
+  const handleResolve = async () => {
+    if (!selectedIssue) return;
+    setIsResolving(true);
+    try {
+      await resolveIssue(selectedIssue.id);
+      await refreshDetails();
+    } catch (err) {
+      console.error("Failed to resolve issue", err);
+      setError("Failed to resolve issue.");
+    } finally {
+      setIsResolving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedIssue) return;
+    if (!confirm("Are you sure you want to delete this issue? This action cannot be undone.")) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteIssue(selectedIssue.id);
+      removeIssueFromStore(selectedIssue.id);
+      onBack();
+    } catch (err) {
+      console.error("Failed to delete issue", err);
+      setError("Failed to delete issue.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleSubmitOpinion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedIssue || !opinionText.trim()) return;
@@ -75,7 +111,7 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
     try {
       await createOpinion(selectedIssue.id, {
         text: opinionText,
-        author: user?.fullName || user?.username || 'Anonymous User',
+        author: currentUserName,
       });
       setOpinionText('');
       await refreshDetails(); // Refresh to show new opinion and potential AI result
@@ -88,7 +124,6 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
 
   if (!selectedIssue) return null;
 
-  const currentUserName = user?.fullName || user?.username || 'Anonymous User';
   const hasAlreadyContributed = selectedIssue.opinions?.some(
     (opinion) => opinion.author === currentUserName
   );
@@ -101,26 +136,52 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
       className="w-full max-w-6xl space-y-8"
     >
       {/* Header */}
-      <div className="flex items-center gap-6">
-        <button
-          onClick={onBack}
-          className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all text-white/60 hover:text-white"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${
-              selectedIssue.status === 'Open' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-              selectedIssue.status === 'Resolved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-              'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-            }`}>
-              {selectedIssue.status}
-            </span>
-            <p className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">Issue ID: {selectedIssue.id}</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <button
+            onClick={onBack}
+            className="p-3 bg-black/60 backdrop-blur-xl border border-white/10 rounded-full hover:bg-white/10 transition-all text-white/60 hover:text-white"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${
+                selectedIssue.status === 'Open' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                selectedIssue.status === 'Resolved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+              }`}>
+                {selectedIssue.status}
+              </span>
+              <p className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">Issue ID: {selectedIssue.id}</p>
+            </div>
+            <h2 className="text-3xl font-black tracking-tight uppercase text-wrap-balance">{selectedIssue.title}</h2>
           </div>
-          <h2 className="text-3xl font-black tracking-tight uppercase text-wrap-balance">{selectedIssue.title}</h2>
         </div>
+
+        {/* Author Actions */}
+        {currentUserName === selectedIssue.author && (
+          <div className="flex items-center gap-3">
+            {selectedIssue.status !== 'Resolved' && (
+              <button
+                onClick={handleResolve}
+                disabled={isResolving}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+              >
+                {isResolving ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                <span className="text-[10px] font-black uppercase tracking-widest">Resolve</span>
+              </button>
+            )}
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-50"
+            >
+              {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+              <span className="text-[10px] font-black uppercase tracking-widest">Delete</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="max-w-4xl mx-auto space-y-8">
