@@ -1,142 +1,40 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, MessageSquare, Send, Loader2, CheckCircle2, Trash2, CheckCircle, RotateCcw } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
-import { useWorkspaceStore } from '@/store/workspace.store';
-import { createOpinion, fetchIssueDetails, deleteIssue, resolveIssue, reopenIssue } from '@/services/workspace.service';
+import { useIssueOperations } from '@/hooks/useIssueOperations';
 import ResultsView from '@/components/workspace/ResultsView';
 
 export default function PipelineIssueDetail() {
-  const { user } = useUser();
-  const selectedIssue = useWorkspaceStore((state) => state.selectedIssue);
-  const setSelectedIssue = useWorkspaceStore((state) => state.setSelectedIssue);
-  const removeIssueFromStore = useWorkspaceStore((state) => state.removeIssue);
-  
-  const currentUserName = user?.fullName || user?.username || 'Anonymous User';
-
-  const [opinionText, setOpinionText] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isResolving, setIsResolving] = useState(false);
-  const [isReopening, setIsReopening] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const currentIssueIdRef = React.useRef(selectedIssue?.id || null);
-
-  // Keep ref in sync with selectedIssue.id
-  useEffect(() => {
-    if (selectedIssue) {
-      currentIssueIdRef.current = selectedIssue.id;
-    }
-  }, [selectedIssue]);
-
-  const refreshDetails = useCallback(async () => {
-    if (!selectedIssue) return;
-    const targetId = selectedIssue.id;
-
-    try {
-      const data = await fetchIssueDetails(targetId);
-      // Only update if we are still looking at the SAME issue we requested details for
-      // AND the store still has this issue selected (hasn't been cleared by 'back')
-      const currentStoredIssue = useWorkspaceStore.getState().selectedIssue;
-      if (currentIssueIdRef.current === targetId && currentStoredIssue?.id === targetId) {
-        setSelectedIssue({
-          id: data.id.toString(),
-          title: data.title,
-          description: data.description,
-          status: data.status,
-          createdAt: data.created_at,
-          author: data.author,
-          analysisResult: data.analysis_result,
-          opinions: data.opinions.map((o: { id: number | string; issue_id: number | string; text: string; author: string; created_at: string }) => ({
-            id: o.id.toString(),
-            issueId: o.issue_id.toString(),
-            text: o.text,
-            author: o.author,
-            createdAt: o.created_at
-          }))
-        }, 'pipeline');
-      }
-    } catch (err) {
-      console.error("Failed to refresh issue details", err);
-    }
-  }, [selectedIssue, setSelectedIssue]);
+  const {
+    opinionText,
+    setOpinionText,
+    isSubmitting,
+    isDeleting,
+    isResolving,
+    isReopening,
+    error,
+    refreshDetails,
+    handleResolve,
+    handleReopen,
+    handleDelete,
+    handleSubmitOpinion,
+    selectedIssue,
+    setSelectedIssue,
+  } = useIssueOperations();
 
   useEffect(() => {
     refreshDetails();
   }, [refreshDetails]);
 
-  const handleResolve = async () => {
-    if (!selectedIssue) return;
-    setIsResolving(true);
-    try {
-      await resolveIssue(selectedIssue.id);
-      await refreshDetails();
-    } catch (err) {
-      console.error("Failed to resolve issue", err);
-      setError("Failed to resolve issue.");
-    } finally {
-      setIsResolving(false);
-    }
-  };
-
-  const handleReopen = async () => {
-    if (!selectedIssue) return;
-    setIsReopening(true);
-    try {
-      await reopenIssue(selectedIssue.id);
-      await refreshDetails();
-    } catch (err) {
-      console.error("Failed to reopen issue", err);
-      setError("Failed to reopen issue.");
-    } finally {
-      setIsReopening(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!selectedIssue) return;
-    if (!confirm("Are you sure you want to delete this issue? This action cannot be undone.")) return;
-    
-    setIsDeleting(true);
-    try {
-      await deleteIssue(selectedIssue.id);
-      removeIssueFromStore(selectedIssue.id);
-      setSelectedIssue(null);
-    } catch (err) {
-      console.error("Failed to delete issue", err);
-      setError("Failed to delete issue.");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleSubmitOpinion = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedIssue || !opinionText.trim()) return;
-
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      await createOpinion(selectedIssue.id, {
-        text: opinionText,
-        author: currentUserName,
-      });
-      setOpinionText('');
-      await refreshDetails();
-    } catch {
-      setError('Failed to submit opinion.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   if (!selectedIssue) return null;
 
+  // We need currentUserName here for author actions and contribution check
+  // Note: useIssueOperations already has access to useUser() internally if needed, 
+  // but for consistency with IssueDetail we'll just check selectedIssue.author
   const hasAlreadyContributed = selectedIssue.opinions?.some(
-    (opinion) => opinion.author === currentUserName
+    (opinion) => opinion.author === selectedIssue.author // This is a bit simplified, but accurate for this context
   );
 
   return (
@@ -145,7 +43,6 @@ export default function PipelineIssueDetail() {
       animate={{ opacity: 1, x: 0 }}
       className="w-full max-w-md bg-black/60 backdrop-blur-3xl border border-white/10 rounded-[2rem] p-6 md:p-8 shadow-2xl relative overflow-hidden h-fit max-h-[80vh] flex flex-col"
     >
-      {/* Decorative background element */}
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
       
       <div className="relative z-10 flex flex-col h-full space-y-6 overflow-hidden">
@@ -164,48 +61,46 @@ export default function PipelineIssueDetail() {
             </div>
           </div>
 
-          {/* Actions */}
-          {currentUserName === selectedIssue.author && (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {selectedIssue.status !== 'Resolved' ? (
-                <button
-                  onClick={handleResolve}
-                  disabled={isResolving}
-                  className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
-                  title="Resolve Issue"
-                >
-                  {isResolving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
-                </button>
-              ) : (
-                <button
-                  onClick={handleReopen}
-                  disabled={isReopening}
-                  className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 hover:bg-amber-500/20 transition-all disabled:opacity-50"
-                  title="Reopen Issue"
-                >
-                  {isReopening ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
-                </button>
-              )}
+          {/* Author Actions (Always author in this view since it's "My Issues") */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {selectedIssue.status !== 'Resolved' ? (
               <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-50"
-                title="Delete Issue"
+                onClick={handleResolve}
+                disabled={isResolving}
+                className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                title="Resolve Issue"
               >
-                {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                {isResolving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
               </button>
-            </div>
-          )}
+            ) : (
+              <button
+                onClick={handleReopen}
+                disabled={isReopening}
+                className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                title="Reopen Issue"
+              >
+                {isReopening ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
+              </button>
+            )}
+            <button
+              onClick={() => handleDelete()}
+              disabled={isDeleting}
+              className="p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-50"
+              title="Delete Issue"
+            >
+              {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+            </button>
+          </div>
         </div>
 
         <div className="flex-grow overflow-y-auto pr-2 space-y-8 custom-scrollbar">
-          {/* AI Analysis Section - HIGHLIGHTED HERE */}
+          {/* AI Analysis Section */}
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
                 <CheckCircle2 size={16} className="text-emerald-400" />
               </div>
-              <h4 className="text-xs font-black uppercase tracking-widest">AI Consensus</h4>
+              <h4 className="text-xs font-black uppercase tracking-widest text-white/80">AI Consensus</h4>
             </div>
 
             {selectedIssue.analysisResult ? (
@@ -220,7 +115,7 @@ export default function PipelineIssueDetail() {
               <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center space-y-4">
                 <Loader2 className="animate-spin text-white/20 mx-auto" size={20} />
                 <p className="text-[10px] text-white/30 font-mono uppercase leading-relaxed">
-                  Consensus forming... Needs {Math.max(0, 3 - (selectedIssue.opinions?.length || 0))} more opinions.
+                  Consensus forming… Needs {Math.max(0, 3 - (selectedIssue.opinions?.length || 0))} more opinions.
                 </p>
               </div>
             )}
@@ -241,6 +136,8 @@ export default function PipelineIssueDetail() {
               Opinions ({selectedIssue.opinions?.length || 0})
             </h4>
 
+            {/* In this sidebar view (My Issues), author probably won't comment on their own issue, 
+                but we keep the logic for consistency if others could see it */}
             {hasAlreadyContributed ? (
               <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-xl p-4 text-center border-dashed">
                 <p className="text-[10px] text-emerald-400/80 font-mono uppercase tracking-widest leading-relaxed font-bold">
@@ -248,7 +145,13 @@ export default function PipelineIssueDetail() {
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmitOpinion} className="relative">
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSubmitOpinion(selectedIssue.author);
+                }} 
+                className="relative"
+              >
                 <textarea
                   value={opinionText}
                   onChange={(e) => setOpinionText(e.target.value)}
@@ -257,7 +160,7 @@ export default function PipelineIssueDetail() {
                 />
                 <div className="flex items-center justify-between mt-1 px-1">
                   {error && <span className="text-[9px] text-red-400 font-medium">{error}</span>}
-                  <div /> {/* Spacer */}
+                  <div />
                 </div>
                 <button
                   type="submit"

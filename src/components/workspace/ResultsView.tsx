@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   BarChart3, 
@@ -24,10 +24,6 @@ interface ResultsViewProps {
 }
 
 export default function ResultsView({ data, onReset, hideHeader = false }: ResultsViewProps) {
-  useEffect(() => {
-    console.log("🚀 Backend API Data:", data);
-  }, [data]);
-
   const { summary, sentiment_distribution, topics, wordcloud_url, churn_risk_score } = data;
   
   const dist = sentiment_distribution || { positive: 0, neutral: 0, negative: 0 };
@@ -44,7 +40,7 @@ export default function ResultsView({ data, onReset, hideHeader = false }: Resul
       {!hideHeader && (
         <div className="flex justify-between items-center mb-16 pt-4">
           <div>
-            <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight text-wrap-balance uppercase">Analysis Results</h2>
+            <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight text-wrap-balance">Analysis Results</h2>
             <p className="text-white/40 uppercase tracking-[0.3em] text-[10px] mt-2 font-black">AI Orchestration Complete • Nodes Active</p>
           </div>
           <button

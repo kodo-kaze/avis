@@ -33,21 +33,12 @@ export default function RaiseIssue() {
     setError(null);
 
     try {
-      const dbIssue = await createIssue({
+      const newIssue = await createIssue({
         title,
         description: file ? `${description} (Attachment: ${file.name})` : description,
         author: authorName,
       });
       
-      const newIssue = {
-        id: dbIssue.id.toString(),
-        title: dbIssue.title,
-        description: dbIssue.description,
-        status: dbIssue.status,
-        createdAt: dbIssue.created_at,
-        author: dbIssue.author,
-      };
-
       addIssue(newIssue);
 
       setSuccess(true);

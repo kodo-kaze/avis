@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { Clock, User, AlertCircle, MoreVertical, Search, Filter, Loader2 } from 'lucide-react';
 import { useWorkspaceStore } from '@/store/workspace.store';
 import { fetchIssues } from '@/services/workspace.service';
-import { Issue } from '@/types/workspace.types';
 
 export default function AllIssues() {
   const issues = useWorkspaceStore((state) => state.issues);
@@ -17,22 +16,7 @@ export default function AllIssues() {
     const load = async () => {
       try {
         const data = await fetchIssues();
-        const mappedIssues: Issue[] = data.map((item: {
-          id: number | string;
-          title: string;
-          description: string;
-          status: 'Open' | 'Resolved' | 'Pending';
-          created_at: string;
-          author: string;
-        }) => ({
-          id: item.id.toString(),
-          title: item.title,
-          description: item.description,
-          status: item.status,
-          createdAt: item.created_at,
-          author: item.author,
-        }));
-        setIssues(mappedIssues);
+        setIssues(data);
       } catch (error) {
         console.error("Failed to load issues:", error);
       } finally {
@@ -73,12 +57,12 @@ export default function AllIssues() {
       {/* Issues Grid/List */}
       <div className="grid grid-cols-1 gap-4">
         {loading && issues.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-white/5 rounded-[2rem] border border-dashed border-white/10">
+          <div className="flex flex-col items-center justify-center py-20 bg-black/60 backdrop-blur-xl rounded-[2rem] border border-dashed border-white/10">
             <Loader2 className="animate-spin text-white/40 mb-4" size={48} />
             <p className="text-white/50 font-mono text-sm uppercase tracking-widest">Accessing Secure Vault…</p>
           </div>
         ) : issues.length === 0 ? (
-          <div className="text-center py-20 bg-white/5 rounded-[2rem] border border-dashed border-white/10">
+          <div className="text-center py-20 bg-black/60 backdrop-blur-xl rounded-[2rem] border border-dashed border-white/10">
             <AlertCircle className="mx-auto text-white/20 mb-4" size={48} />
             <p className="text-white/50 font-mono text-sm uppercase tracking-widest">No Issues Found in Pipeline</p>
           </div>

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { WorkspaceState, Issue } from '@/types/workspace.types';
+import { WorkspaceState } from '@/types/workspace.types';
 
 export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   analysisResult: null,

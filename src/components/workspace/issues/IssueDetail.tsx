@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, User, Clock, MessageSquare, Send, Loader2, Trash2, CheckCircle, RotateCcw } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
-import { useWorkspaceStore } from '@/store/workspace.store';
-import { createOpinion, fetchIssueDetails, deleteIssue, resolveIssue, reopenIssue } from '@/services/workspace.service';
+import { useIssueOperations } from '@/hooks/useIssueOperations';
 
 interface IssueDetailProps {
   onBack: () => void;
@@ -13,132 +12,29 @@ interface IssueDetailProps {
 
 export default function IssueDetail({ onBack }: IssueDetailProps) {
   const { user } = useUser();
-  const selectedIssue = useWorkspaceStore((state) => state.selectedIssue);
-  const selectionSource = useWorkspaceStore((state) => state.selectionSource);
-  const setSelectedIssue = useWorkspaceStore((state) => state.setSelectedIssue);
-  const removeIssueFromStore = useWorkspaceStore((state) => state.removeIssue);
-  
-  const currentUserName = user?.fullName || user?.username || 'Anonymous User';
-
-  const [opinionText, setOpinionText] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isResolving, setIsResolving] = useState(false);
-  const [isReopening, setIsReopening] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const currentIssueIdRef = React.useRef(selectedIssue?.id || null);
-
-  // Keep ref in sync with selectedIssue.id
-  useEffect(() => {
-    if (selectedIssue) {
-      currentIssueIdRef.current = selectedIssue.id;
-    }
-  }, [selectedIssue]);
-
-  const refreshDetails = useCallback(async () => {
-    if (!selectedIssue) return;
-    const targetId = selectedIssue.id;
-
-    try {
-      const data = await fetchIssueDetails(targetId);
-      // Only update if we are still looking at the SAME issue we requested details for
-      // AND the store still has this issue selected (hasn't been cleared by 'back')
-      const currentStoredIssue = useWorkspaceStore.getState().selectedIssue;
-      if (currentIssueIdRef.current === targetId && currentStoredIssue?.id === targetId) {
-        setSelectedIssue({
-          id: data.id.toString(),
-          title: data.title,
-          description: data.description,
-          status: data.status,
-          createdAt: data.created_at,
-          author: data.author,
-          analysisResult: data.analysis_result,
-          opinions: data.opinions.map((o: { id: number | string; issue_id: number | string; text: string; author: string; created_at: string }) => ({
-            id: o.id.toString(),
-            issueId: o.issue_id.toString(),
-            text: o.text,
-            author: o.author,
-            createdAt: o.created_at
-          }))
-        }, selectionSource || undefined);
-      }
-    } catch (err) {
-      console.error("Failed to refresh issue details", err);
-    }
-  }, [selectedIssue, setSelectedIssue, selectionSource]);
+  const {
+    opinionText,
+    setOpinionText,
+    isSubmitting,
+    isDeleting,
+    isResolving,
+    isReopening,
+    error,
+    refreshDetails,
+    handleResolve,
+    handleReopen,
+    handleDelete,
+    handleSubmitOpinion,
+    selectedIssue,
+  } = useIssueOperations();
 
   useEffect(() => {
     refreshDetails();
   }, [refreshDetails]);
 
-  const handleResolve = async () => {
-    if (!selectedIssue) return;
-    setIsResolving(true);
-    try {
-      await resolveIssue(selectedIssue.id);
-      await refreshDetails();
-    } catch (err) {
-      console.error("Failed to resolve issue", err);
-      setError("Failed to resolve issue.");
-    } finally {
-      setIsResolving(false);
-    }
-  };
-
-  const handleReopen = async () => {
-    if (!selectedIssue) return;
-    setIsReopening(true);
-    try {
-      await reopenIssue(selectedIssue.id);
-      await refreshDetails();
-    } catch (err) {
-      console.error("Failed to reopen issue", err);
-      setError("Failed to reopen issue.");
-    } finally {
-      setIsReopening(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!selectedIssue) return;
-    if (!confirm("Are you sure you want to delete this issue? This action cannot be undone.")) return;
-    
-    setIsDeleting(true);
-    try {
-      await deleteIssue(selectedIssue.id);
-      removeIssueFromStore(selectedIssue.id);
-      onBack();
-    } catch (err) {
-      console.error("Failed to delete issue", err);
-      setError("Failed to delete issue.");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleSubmitOpinion = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedIssue || !opinionText.trim()) return;
-
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      await createOpinion(selectedIssue.id, {
-        text: opinionText,
-        author: currentUserName,
-      });
-      setOpinionText('');
-      await refreshDetails(); // Refresh to show new opinion and potential AI result
-    } catch {
-      setError('Failed to submit opinion. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   if (!selectedIssue) return null;
 
+  const currentUserName = user?.fullName || user?.username || 'Anonymous User';
   const hasAlreadyContributed = selectedIssue.opinions?.some(
     (opinion) => opinion.author === currentUserName
   );
@@ -197,7 +93,7 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
               </button>
             )}
             <button
-              onClick={handleDelete}
+              onClick={() => handleDelete(onBack)}
               disabled={isDeleting}
               className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-50"
             >
@@ -269,7 +165,13 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmitOpinion} className="relative group">
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSubmitOpinion(currentUserName);
+                }} 
+                className="relative group"
+              >
                 <textarea
                   value={opinionText}
                   onChange={(e) => setOpinionText(e.target.value)}

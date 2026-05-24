@@ -6,8 +6,6 @@ import { Loader2, Clock, User as UserIcon, MessageSquare, ChevronRight } from 'l
 import { useUser } from '@clerk/nextjs';
 import { useWorkspaceStore } from '@/store/workspace.store';
 import { fetchMyIssues } from '@/services/workspace.service';
-import { Issue } from '@/types/workspace.types';
-import { AnalysisResult } from '@/lib/types';
 
 export default function PipelineConcerns() {
   const { user } = useUser();
@@ -26,33 +24,8 @@ export default function PipelineConcerns() {
       setIsLoading(true);
       try {
         const data = await fetchMyIssues(authorName);
-        const formattedIssues: Issue[] = data.map((item: { 
-          id: number | string; 
-          title: string; 
-          description: string; 
-          status: 'Open' | 'Resolved' | 'Pending';
-          created_at: string;
-          author: string;
-          analysis_result?: AnalysisResult;
-          opinions?: { id: number | string; issue_id: number | string; text: string; author: string; created_at: string }[] 
-        }) => ({
-          id: item.id.toString(),
-          title: item.title,
-          description: item.description,
-          status: item.status,
-          createdAt: item.created_at,
-          author: item.author,
-          analysisResult: item.analysis_result,
-          opinions: item.opinions?.map((o) => ({
-            id: o.id.toString(),
-            issueId: o.issue_id.toString(),
-            text: o.text,
-            author: o.author,
-            createdAt: o.created_at
-          }))
-        }));
         if (mounted) {
-          setIssues(formattedIssues);
+          setIssues(data);
         }
       } catch (err) {
         console.error("Failed to load my issues", err);
