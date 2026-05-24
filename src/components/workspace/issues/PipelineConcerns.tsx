@@ -104,7 +104,7 @@ export default function PipelineConcerns() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
                 onClick={() => setSelectedIssue(issue, 'pipeline')}
-                className="group flex items-center justify-between p-5 bg-white/5 border border-white/5 hover:border-white/20 rounded-2xl transition-all cursor-pointer"
+                className="group flex items-center justify-between p-5 bg-black/40 backdrop-blur-xl border border-white/5 hover:border-white/20 rounded-2xl transition-all cursor-pointer"
               >
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-3">
