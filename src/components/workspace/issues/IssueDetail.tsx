@@ -117,9 +117,9 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
             }`}>
               {selectedIssue.status}
             </span>
-            <p className="text-[10px] font-mono text-white/30 uppercase tracking-[0.2em]">Issue ID: {selectedIssue.id}</p>
+            <p className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">Issue ID: {selectedIssue.id}</p>
           </div>
-          <h2 className="text-3xl font-black tracking-tight uppercase">{selectedIssue.title}</h2>
+          <h2 className="text-3xl font-black tracking-tight uppercase text-wrap-balance">{selectedIssue.title}</h2>
         </div>
       </div>
 
@@ -130,30 +130,30 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
           {/* Main Content Card */}
           <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 space-y-6">
             <div className="space-y-4">
-              <h3 className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Issue Description</h3>
-              <p className="text-white/80 leading-relaxed text-lg">
+              <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Issue Description</h3>
+              <p className="text-white/90 leading-relaxed text-lg">
                 {selectedIssue.description}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-8 pt-4 border-t border-white/5">
-              <div className="flex items-center gap-3 text-white/40">
+              <div className="flex items-center gap-3 text-white/60">
                 <div className="p-2 bg-white/5 rounded-lg">
                   <User size={16} />
                 </div>
                 <div>
                   <p className="text-[8px] uppercase tracking-widest font-bold">Author</p>
-                  <p className="text-xs font-mono">{selectedIssue.author}</p>
+                  <p className="text-xs font-mono text-white/80">{selectedIssue.author}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-white/40">
+              <div className="flex items-center gap-3 text-white/60">
                 <div className="p-2 bg-white/5 rounded-lg">
                   <Clock size={16} />
                 </div>
                 <div>
                   <p className="text-[8px] uppercase tracking-widest font-bold">Opened On</p>
-                  <p className="text-xs font-mono">
+                  <p className="text-xs font-mono text-white/80">
                     {new Date(selectedIssue.createdAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -164,7 +164,7 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
           {/* Opinions Section */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+              <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3 text-wrap-balance">
                 <MessageSquare className="text-white/40" size={24} />
                 Stakeholder Opinions
                 <span className="bg-white/5 border border-white/10 rounded-full px-3 py-1 text-[10px] font-mono text-white/40">
@@ -175,9 +175,12 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
 
             {/* Opinion Input */}
             {hasAlreadyContributed ? (
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center border-dashed">
-                <p className="text-white/30 text-xs font-mono uppercase tracking-[0.2em]">
-                  You have already shared your perspective on this issue.
+              <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-6 text-center">
+                <p className="text-emerald-400/80 text-xs font-mono uppercase tracking-[0.2em] font-bold">
+                  Perspective Shared …
+                </p>
+                <p className="text-white/40 text-[10px] uppercase tracking-widest mt-1">
+                  You have already contributed to this issue.
                 </p>
               </div>
             ) : (
@@ -185,7 +188,7 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
                 <textarea
                   value={opinionText}
                   onChange={(e) => setOpinionText(e.target.value)}
-                  placeholder="Share your perspective on this issue..."
+                  placeholder="Share your perspective on this issue…"
                   className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all resize-none font-medium h-32"
                 />
                 <div className="absolute bottom-4 right-4 flex items-center gap-4">

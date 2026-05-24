@@ -48,24 +48,24 @@ export default function AllIssues() {
       {/* Header & Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-black tracking-tighter uppercase">Stakeholder Issues</h2>
-          <p className="text-white/40 text-xs font-mono tracking-widest uppercase mt-1">
+          <h2 className="text-3xl font-black tracking-tighter uppercase text-wrap-balance">Stakeholder Issues</h2>
+          <p className="text-white/50 text-xs font-mono tracking-widest uppercase mt-1">
             {issues.length} Active Concern{issues.length !== 1 ? 's' : ''} in Pipeline
           </p>
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
-          {loading && <Loader2 size={16} className="animate-spin text-white/20" />}
+          {loading && <Loader2 size={16} className="animate-spin text-white/40" />}
           <div className="relative flex-grow md:flex-grow-0">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={16} />
             <input 
               type="text" 
-              placeholder="Filter issues..."
-              className="bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-xs focus:outline-none focus:border-white/30 transition-all w-full md:w-64"
+              placeholder="Filter Issues…"
+              className="bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-xs focus:outline-none focus:border-white/30 focus-visible:ring-1 focus-visible:ring-white/20 transition-all w-full md:w-64"
             />
           </div>
-          <button className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
-            <Filter size={18} className="text-white/60" />
+          <button className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/30 transition-colors">
+            <Filter size={18} className="text-white/80" />
           </button>
         </div>
       </div>
@@ -74,13 +74,13 @@ export default function AllIssues() {
       <div className="grid grid-cols-1 gap-4">
         {loading && issues.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white/5 rounded-[2rem] border border-dashed border-white/10">
-            <Loader2 className="animate-spin text-white/20 mb-4" size={48} />
-            <p className="text-white/40 font-mono text-sm uppercase tracking-widest">Accessing Secure Vault...</p>
+            <Loader2 className="animate-spin text-white/40 mb-4" size={48} />
+            <p className="text-white/50 font-mono text-sm uppercase tracking-widest">Accessing Secure Vault…</p>
           </div>
         ) : issues.length === 0 ? (
           <div className="text-center py-20 bg-white/5 rounded-[2rem] border border-dashed border-white/10">
-            <AlertCircle className="mx-auto text-white/10 mb-4" size={48} />
-            <p className="text-white/40 font-mono text-sm uppercase tracking-widest">No issues found in pipeline</p>
+            <AlertCircle className="mx-auto text-white/20 mb-4" size={48} />
+            <p className="text-white/50 font-mono text-sm uppercase tracking-widest">No Issues Found in Pipeline</p>
           </div>
         ) : (
           issues.map((issue, index) => (
@@ -102,21 +102,21 @@ export default function AllIssues() {
                     }`}>
                       {issue.status}
                     </span>
-                    <h3 className="text-lg font-bold tracking-tight text-white group-hover:text-white transition-colors">
+                    <h3 className="text-lg font-bold tracking-tight text-white group-hover:text-white transition-colors text-wrap-balance">
                       {issue.title}
                     </h3>
                   </div>
 
-                  <p className="text-white/60 text-sm leading-relaxed max-w-3xl">
+                  <p className="text-white/80 text-sm leading-relaxed max-w-3xl">
                     {issue.description}
                   </p>
 
                   <div className="flex flex-wrap items-center gap-6 pt-2">
-                    <div className="flex items-center gap-2 text-white/30">
+                    <div className="flex items-center gap-2 text-white/50">
                       <User size={14} />
                       <span className="text-[10px] font-mono uppercase tracking-wider">{issue.author}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-white/30">
+                    <div className="flex items-center gap-2 text-white/50">
                       <Clock size={14} />
                       <span className="text-[10px] font-mono uppercase tracking-wider">
                         {new Date(issue.createdAt).toLocaleDateString(undefined, { 
@@ -130,7 +130,7 @@ export default function AllIssues() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button className="p-2 text-white/20 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                  <button className="p-2 text-white/30 hover:text-white hover:bg-white/5 rounded-lg transition-all">
                     <MoreVertical size={18} />
                   </button>
                 </div>

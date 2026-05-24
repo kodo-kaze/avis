@@ -143,23 +143,23 @@ export default function PipelineIssueDetail() {
 
           {/* Description */}
           <div className="space-y-2">
-            <h4 className="text-[10px] font-black text-white/20 uppercase tracking-widest">Description</h4>
-            <p className="text-xs text-white/70 leading-relaxed">
+            <h4 className="text-[10px] font-black text-white/30 uppercase tracking-widest">Description</h4>
+            <p className="text-xs text-white/80 leading-relaxed text-wrap-balance">
               {selectedIssue.description}
             </p>
           </div>
 
           {/* Opinions */}
           <div className="space-y-4">
-            <h4 className="text-[10px] font-black text-white/20 uppercase tracking-widest flex items-center gap-2">
+            <h4 className="text-[10px] font-black text-white/30 uppercase tracking-widest flex items-center gap-2">
               <MessageSquare size={12} />
               Opinions ({selectedIssue.opinions?.length || 0})
             </h4>
 
             {hasAlreadyContributed ? (
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center border-dashed">
-                <p className="text-[10px] text-white/30 font-mono uppercase tracking-widest leading-relaxed">
-                  Contribution submitted.
+              <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-4 text-center">
+                <p className="text-[10px] text-emerald-400/80 font-mono uppercase tracking-widest leading-relaxed font-bold">
+                  Contribution Submitted …
                 </p>
               </div>
             ) : (
@@ -167,7 +167,7 @@ export default function PipelineIssueDetail() {
                 <textarea
                   value={opinionText}
                   onChange={(e) => setOpinionText(e.target.value)}
-                  placeholder="Share perspective..."
+                  placeholder="Share Perspective…"
                   className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all resize-none h-20"
                 />
                 <div className="flex items-center justify-between mt-1 px-1">
