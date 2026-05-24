@@ -4,7 +4,7 @@ import axios from "axios";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ||
-  "http://localhost:8000";
+  "http://127.0.0.1:8000";
 
 export const uploadFileForAnalysis = async (
   file: File
@@ -46,6 +46,11 @@ export const createIssue = async (issue: { title: string; description: string; a
 
 export const fetchIssues = async () => {
   const response = await axios.get(`${API_BASE}/issues/`);
+  return response.data;
+};
+
+export const fetchMyIssues = async (author: string) => {
+  const response = await axios.get(`${API_BASE}/issues/me/${author}`);
   return response.data;
 };
 

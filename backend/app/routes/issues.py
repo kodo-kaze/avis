@@ -35,6 +35,10 @@ def get_issue(issue_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Issue not found")
     return db_issue
 
+@router.get("/me/{author}", response_model=List[IssueResponse])
+def get_my_issues(author: str, db: Session = Depends(get_db)):
+    return db.query(Issue).filter(Issue.author == author).order_by(Issue.created_at.desc()).all()
+
 @router.post("/{issue_id}/opinions", response_model=OpinionResponse)
 async def create_opinion(issue_id: int, opinion: OpinionCreate, db: Session = Depends(get_db)):
     db_issue = db.query(Issue).filter(Issue.id == issue_id).first()
@@ -50,10 +54,11 @@ async def create_opinion(issue_id: int, opinion: OpinionCreate, db: Session = De
     db.commit()
     db.refresh(db_opinion)
     
-    # Check if we should trigger analysis (exactly 3 opinions)
+    # Check if we should trigger analysis (threshold 3)
     opinions_count = db.query(Opinion).filter(Opinion.issue_id == issue_id).count()
     
-    if opinions_count == 3:
+    # Recalculate if threshold met (>= 3)
+    if opinions_count >= 3:
         try:
             # Gather all opinions
             all_opinions = db.query(Opinion).filter(Opinion.issue_id == issue_id).all()
@@ -62,14 +67,12 @@ async def create_opinion(issue_id: int, opinion: OpinionCreate, db: Session = De
             cleaned_comments = preprocess_comments(texts)
             if cleaned_comments:
                 analysis_response = await process_feedback(cleaned_comments)
-                # Use the helper to add risk score
                 final_result = append_risk_score(analysis_response)
                 
-                # Save to issue
+                # Save/Update analysis result
                 db_issue.analysis_result = final_result
                 db.commit()
         except Exception as e:
             print(f"Automated pipeline failed for issue {issue_id}: {str(e)}")
-            # Don't fail the opinion submission if AI fails
     
     return db_opinion

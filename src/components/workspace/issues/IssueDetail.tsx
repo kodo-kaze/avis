@@ -221,41 +221,55 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
           </div>
 
           <div className="sticky top-8">
-            {selectedIssue.analysisResult ? (
-              <ResultsView
-                data={selectedIssue.analysisResult}
-                onReset={() => {}}
-                hideHeader={true}
-              />
+            {user?.fullName === selectedIssue.author || user?.username === selectedIssue.author ? (
+              selectedIssue.analysisResult ? (
+                <ResultsView
+                  data={selectedIssue.analysisResult}
+                  onReset={() => {}}
+                  hideHeader={true}
+                />
+              ) : (
+                <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 text-center space-y-6">
+                  <div className="relative mx-auto w-20 h-20">
+                    <div className="absolute inset-0 bg-white/5 rounded-full animate-ping" />
+                    <div className="relative flex items-center justify-center w-20 h-20 bg-white/10 rounded-full border border-white/10">
+                      <Loader2 className="animate-spin text-white/40" size={32} />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <p className="text-white font-bold uppercase tracking-widest text-xs">Waiting for Threshold</p>
+                    <p className="text-white/30 text-[10px] font-mono uppercase leading-relaxed">
+                      AI Analysis triggers automatically after <span className="text-white/60">3 stakeholder opinions</span>.
+                    </p>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[9px] font-mono text-white/40 uppercase">
+                      <span>Consensus Progress</span>
+                      <span>{selectedIssue.opinions?.length || 0} / 3</span>
+                    </div>
+                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-white/40"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(((selectedIssue.opinions?.length || 0) / 3) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )
             ) : (
               <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 text-center space-y-6">
-                <div className="relative mx-auto w-20 h-20">
-                  <div className="absolute inset-0 bg-white/5 rounded-full animate-ping" />
-                  <div className="relative flex items-center justify-center w-20 h-20 bg-white/10 rounded-full border border-white/10">
-                    <Loader2 className="animate-spin text-white/40" size={32} />
-                  </div>
+                <div className="flex items-center justify-center w-20 h-20 bg-white/5 rounded-full border border-white/10 mx-auto">
+                  <AlertCircle className="text-white/20" size={32} />
                 </div>
-                
                 <div className="space-y-2">
-                  <p className="text-white font-bold uppercase tracking-widest text-xs">Waiting for Threshold</p>
+                  <p className="text-white font-bold uppercase tracking-widest text-xs">Private Intelligence</p>
                   <p className="text-white/30 text-[10px] font-mono uppercase leading-relaxed">
-                    AI Analysis triggers automatically after <span className="text-white/60">3 stakeholder opinions</span>.
+                    Detailed AI analysis results are exclusively visible to the <span className="text-white/60">Issue Author</span>.
                   </p>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-[9px] font-mono text-white/40 uppercase">
-                    <span>Consensus Progress</span>
-                    <span>{selectedIssue.opinions?.length || 0} / 3</span>
-                  </div>
-                  <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-white/40"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.min(((selectedIssue.opinions?.length || 0) / 3) * 100, 100)}%` }}
-                    />
-                  </div>
                 </div>
               </div>
             )}
