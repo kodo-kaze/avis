@@ -194,7 +194,7 @@ export default function WorkspaceClient() {
                 )}
               </div>
             ) : activePage === "about" ? (
-              <About />
+              <About onBack={() => handlePageChange("analysis")} />
             ) : null}
           </AnimatePresence>
         </main>

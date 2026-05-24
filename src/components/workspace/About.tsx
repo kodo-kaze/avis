@@ -11,10 +11,15 @@ import {
   MessageSquare, 
   Layers,
   Database,
-  Globe
+  Globe,
+  ArrowLeft
 } from 'lucide-react';
 
-export default function About() {
+interface AboutProps {
+  onBack?: () => void;
+}
+
+export default function About({ onBack }: AboutProps) {
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -39,6 +44,21 @@ export default function About() {
       animate="visible"
       className="w-full max-w-5xl space-y-12 pb-24"
     >
+      {/* Back Button */}
+      {onBack && (
+        <div className="flex justify-start">
+          <button
+            onClick={onBack}
+            className="group flex items-center gap-3 text-white/40 hover:text-white transition-all"
+          >
+            <div className="p-2 rounded-full bg-white/5 border border-white/10 group-hover:bg-white group-hover:text-black transition-all">
+              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest">Return to Workspace</span>
+          </button>
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
