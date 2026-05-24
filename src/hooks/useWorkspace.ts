@@ -5,19 +5,23 @@ export const useWorkspace = () => {
     analysisResult,
     loading,
     error,
+    issues,
     setAnalysisResult,
     setLoading,
     setError,
     resetWorkspace,
+    addIssue,
   } = useWorkspaceStore();
 
   return {
     analysisResult,
     loading,
     error,
+    issues,
     setAnalysisResult,
     setLoading,
     setError,
     resetWorkspace,
+    addIssue,
   };
 };

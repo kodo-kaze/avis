@@ -27,14 +27,12 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
     console.log("🚀 Backend API Data:", data);
   }, [data]);
 
-  // Bypass TS strict checking for incoming AI/XGBoost metrics
-  const { summary, sentiment_distribution, topics, wordcloud_url, churn_risk_score } = data as any;
+  const { summary, sentiment_distribution, topics, wordcloud_url, churn_risk_score } = data;
   
-  // STRICT BYPASS: Converting to 'any' forces TypeScript to ignore the Uppercase/Lowercase type error entirely.
-  const dist: any = sentiment_distribution || {};
-  const safePositive = dist.positive || dist.Positive || 0;
-  const safeNeutral = dist.neutral || dist.Neutral || 0;
-  const safeNegative = dist.negative || dist.Negative || 0;
+  const dist = sentiment_distribution || { positive: 0, neutral: 0, negative: 0 };
+  const safePositive = dist.positive || 0;
+  const safeNeutral = dist.neutral || 0;
+  const safeNegative = dist.negative || 0;
 
   return (
     <motion.div

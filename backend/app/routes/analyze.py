@@ -9,8 +9,11 @@ router = APIRouter()
 
 def append_risk_score(response_obj):
     """Helper to safely calculate and append the XGBoost risk score."""
-    # We use a placeholder for sentiment here. 
-    dynamic_sentiment = 0.4 
+    
+    # Calculate a dynamic sentiment score based on the negative sentiment percentage
+    # (High negative sentiment -> low score, which triggers higher churn risk)
+    negative_pct = response_obj.sentiment_distribution.negative
+    dynamic_sentiment = 1.0 - (negative_pct / 100.0)
     
     churn_probability = risk_predictor.predict_risk(
         sentiment=dynamic_sentiment, 

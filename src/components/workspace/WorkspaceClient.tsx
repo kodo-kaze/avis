@@ -84,7 +84,7 @@ export default function WorkspaceClient() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-grow flex flex-col items-center p-8 md:p-12 overflow-y-auto no-scrollbar">
+        <main className="flex-grow flex flex-col items-center p-8 md:p-12 overflow-y-auto">
 
           {/* Tabs */}
           <div className="flex justify-center mb-6">
