@@ -6,6 +6,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   loading: false,
   error: null,
   issues: [],
+  selectedIssue: null,
 
   setAnalysisResult: (result) =>
     set({ analysisResult: result }),
@@ -21,6 +22,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
       analysisResult: null,
       loading: false,
       error: null,
+      selectedIssue: null,
     }),
 
   addIssue: (issue) => set((state) => ({
@@ -28,4 +30,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   })),
 
   setIssues: (issues) => set({ issues }),
-}));
+
+  setSelectedIssue: (issue) => set({ selectedIssue: issue }),
+  }));

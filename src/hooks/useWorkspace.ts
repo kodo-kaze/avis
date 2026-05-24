@@ -6,12 +6,14 @@ export const useWorkspace = () => {
     loading,
     error,
     issues,
+    selectedIssue,
     setAnalysisResult,
     setLoading,
     setError,
     resetWorkspace,
     addIssue,
     setIssues,
+    setSelectedIssue,
   } = useWorkspaceStore();
 
   return {
@@ -19,11 +21,13 @@ export const useWorkspace = () => {
     loading,
     error,
     issues,
+    selectedIssue,
     setAnalysisResult,
     setLoading,
     setError,
     resetWorkspace,
     addIssue,
     setIssues,
+    setSelectedIssue,
   };
 };

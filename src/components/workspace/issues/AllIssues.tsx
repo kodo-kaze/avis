@@ -9,6 +9,7 @@ import { fetchIssues } from '@/services/workspace.service';
 export default function AllIssues() {
   const issues = useWorkspaceStore((state) => state.issues);
   const setIssues = useWorkspaceStore((state) => state.setIssues);
+  const setSelectedIssue = useWorkspaceStore((state) => state.setSelectedIssue);
   const [loading, setLoading] = useState(issues.length === 0);
 
   useEffect(() => {
@@ -80,7 +81,8 @@ export default function AllIssues() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="group relative bg-black/40 backdrop-blur-xl border border-white/10 hover:border-white/20 rounded-2xl p-6 transition-all"
+              onClick={() => setSelectedIssue(issue)}
+              className="group relative bg-black/40 backdrop-blur-xl border border-white/10 hover:border-white/40 rounded-2xl p-6 transition-all cursor-pointer hover:translate-x-1"
             >
               <div className="flex justify-between items-start gap-4">
                 <div className="flex-grow space-y-3">

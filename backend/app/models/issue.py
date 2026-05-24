@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum
+from sqlalchemy import Column, Integer, String, DateTime, Enum, JSON
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from app.config.database import Base
 import enum
 
@@ -17,3 +18,6 @@ class Issue(Base):
     status = Column(String, default="Open")
     author = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    analysis_result = Column(JSON, nullable=True)
+
+    opinions = relationship("Opinion", back_populates="issue", cascade="all, delete-orphan")

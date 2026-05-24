@@ -1,5 +1,13 @@
 import { AnalysisResult } from '@/lib/types';
 
+export interface Opinion {
+  id: string;
+  issueId: string;
+  text: string;
+  author: string;
+  createdAt: string;
+}
+
 export interface Issue {
   id: string;
   title: string;
@@ -7,6 +15,8 @@ export interface Issue {
   status: 'Open' | 'Resolved' | 'Pending';
   createdAt: string;
   author: string;
+  analysisResult?: AnalysisResult;
+  opinions?: Opinion[];
 }
 
 export interface WorkspaceState {
@@ -14,6 +24,7 @@ export interface WorkspaceState {
   loading: boolean;
   error: string | null;
   issues: Issue[];
+  selectedIssue: Issue | null;
 
   setAnalysisResult: (result: AnalysisResult | null) => void;
   setLoading: (loading: boolean) => void;
@@ -21,4 +32,5 @@ export interface WorkspaceState {
   resetWorkspace: () => void;
   addIssue: (issue: Issue) => void;
   setIssues: (issues: Issue[]) => void;
+  setSelectedIssue: (issue: Issue | null) => void;
 }

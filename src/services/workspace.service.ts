@@ -48,3 +48,13 @@ export const fetchIssues = async () => {
   const response = await axios.get(`${API_BASE}/issues/`);
   return response.data;
 };
+
+export const fetchIssueDetails = async (issueId: string) => {
+  const response = await axios.get(`${API_BASE}/issues/${issueId}`);
+  return response.data;
+};
+
+export const createOpinion = async (issueId: string, opinion: { text: string; author: string }) => {
+  const response = await axios.post(`${API_BASE}/issues/${issueId}/opinions`, opinion);
+  return response.data;
+};

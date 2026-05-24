@@ -12,6 +12,7 @@ import { AnalysisResult } from '@/lib/types';
 
 import AllIssues from "@/components/workspace/issues/AllIssues";
 import RaiseIssue from "@/components/workspace/issues/RaiseIssue";
+import IssueDetail from "@/components/workspace/issues/IssueDetail";
 
 import { useWorkspace } from '@/hooks/useWorkspace';
 
@@ -27,6 +28,8 @@ export default function WorkspaceClient() {
     analysisResult,
     setAnalysisResult,
     resetWorkspace,
+    selectedIssue,
+    setSelectedIssue,
   } = useWorkspace();
 
   const [activePage, setActivePage] = useState("analysis");
@@ -140,7 +143,11 @@ export default function WorkspaceClient() {
                 />
               )
             ) : activePage === "issues" ? (
-              <AllIssues />
+              selectedIssue ? (
+                <IssueDetail onBack={() => setSelectedIssue(null)} />
+              ) : (
+                <AllIssues />
+              )
             ) : activePage === "raise" ? (
               <RaiseIssue />
             ) : null}

@@ -20,9 +20,10 @@ import { AnalysisResult, TopicItem } from '@/lib/types';
 interface ResultsViewProps {
   data: AnalysisResult;
   onReset: () => void;
+  hideHeader?: boolean;
 }
 
-export default function ResultsView({ data, onReset }: ResultsViewProps) {
+export default function ResultsView({ data, onReset, hideHeader = false }: ResultsViewProps) {
   useEffect(() => {
     console.log("🚀 Backend API Data:", data);
   }, [data]);
@@ -38,23 +39,25 @@ export default function ResultsView({ data, onReset }: ResultsViewProps) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="w-full max-w-6xl pb-32 px-4"
+      className={`w-full ${hideHeader ? '' : 'max-w-6xl pb-32 px-4'}`}
     >
-      <div className="flex justify-between items-center mb-16 pt-4">
-        <div>
-          <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight">ANALYSIS RESULTS</h2>
-          <p className="text-white/40 uppercase tracking-[0.3em] text-[10px] mt-2 font-black">AI Orchestration complete • Nodes active</p>
+      {!hideHeader && (
+        <div className="flex justify-between items-center mb-16 pt-4">
+          <div>
+            <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight">ANALYSIS RESULTS</h2>
+            <p className="text-white/40 uppercase tracking-[0.3em] text-[10px] mt-2 font-black">AI Orchestration complete • Nodes active</p>
+          </div>
+          <button
+            onClick={onReset}
+            className="flex items-center gap-2 px-8 py-3 bg-white text-black rounded-full hover:bg-neutral-200 transition-all text-xs font-black tracking-widest uppercase shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+          >
+            <ArrowLeft size={16} /> NEW ANALYSIS
+          </button>
         </div>
-        <button
-          onClick={onReset}
-          className="flex items-center gap-2 px-8 py-3 bg-white text-black rounded-full hover:bg-neutral-200 transition-all text-xs font-black tracking-widest uppercase shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-        >
-          <ArrowLeft size={16} /> NEW ANALYSIS
-        </button>
-      </div>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className={`grid grid-cols-1 ${hideHeader ? 'gap-6' : 'lg:grid-cols-3 gap-6'}`}>
+        <div className={`${hideHeader ? 'space-y-6' : 'lg:col-span-2 space-y-6'}`}>
           <section className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6 text-white/60">
               <MessageSquare size={20} />
