@@ -94,6 +94,7 @@ export default function About({ onBack }: AboutProps) {
             {[
               { icon: <Zap size={16} />, title: "Real-time Processing", desc: "Low-latency inference via optimized API pipelines." },
               { icon: <ShieldCheck size={16} />, title: "Secure Transmission", desc: "End-to-end encryption for all stakeholder feedback data." },
+              { icon: <Database size={16} />, title: "Edge Caching", desc: "High-performance data retrieval via Upstash Redis REST API." },
               { icon: <Globe size={16} />, title: "Global Context", desc: "Multilingual support for diverse stakeholder regions." }
             ].map((feature, i) => (
               <li key={i} className="flex gap-4 items-start">
@@ -152,6 +153,7 @@ export default function About({ onBack }: AboutProps) {
             "Tailwind CSS 4",
             "FastAPI",
             "SQLAlchemy",
+            "Upstash Redis",
             "Hugging Face API",
             "Clerk Auth"
           ].map((tech, i) => (

@@ -28,6 +28,7 @@
 *   **Privacy Control**: Toggle between **Public** and **Private** concerns with one click.
 *   **Deep Linking**: Direct shareable links for private issues, ensuring controlled access to sensitive discussions.
 *   **Lifecycle Management**: Seamless transition between *Open*, *Resolved*, and *Reopened* states.
+*   **High-Performance Caching**: Optimized data retrieval via **Upstash Redis (REST)** using a Cache-Aside pattern with Active Invalidation for sub-50ms response times.
 
 ### 💎 Immersive UI/UX
 *   **Glassmorphism Architecture**: A premium dark‑mode interface featuring obsidian blurs and high‑refraction cards.
@@ -43,7 +44,15 @@
 ```mermaid
 graph TD
     User((Stakeholder)) -->|Submit Opinion/Issue| API[FastAPI Gateway]
-    API -->|Persist Data| DB[(PostgreSQL)]
+    API -->|1. Invalidate| Cache[(Upstash Redis)]
+    API -->|2. Persist| DB[(PostgreSQL)]
+    
+    User -->|Fetch Issues| API
+    API -->|a. Check Hit| Cache
+    Cache -->|b. Miss| DB
+    DB -->|c. Populate| Cache
+    Cache -->|d. Hit| API
+
     API -->|Request Analysis| Orchestrator[SYNAPSE-AI Orchestrator]
     Orchestrator -->|Raw Text| Cleaner[Data Preprocessing]
     Cleaner -->|Cleaned Data| HF[Hugging Face Inference API]
@@ -99,6 +108,7 @@ flowchart TD
 ### **Backend Infrastructure**
 - **FastAPI (Python 3.12)**: Asynchronous, high‑performance service layer.
 - **SQLAlchemy (Neon/PostgreSQL)**: Robust ORM for concern persistence and opinion cascading.
+- **Upstash Redis**: HTTP-based caching layer optimized for Vercel Serverless environments.
 - **Hugging Face Inference**: Leveraging transformer models for sentiment and topic extraction.
 - **XGBoost**: Proprietary risk scoring implementation.
 
