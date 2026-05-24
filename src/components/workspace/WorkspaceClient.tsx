@@ -28,9 +28,9 @@ export default function WorkspaceClient() {
 
   return (
     <div className="relative w-full h-screen bg-[#050505] overflow-hidden text-white font-sans">
-      {/* 3D Background */}
+      {/* 3D Background - Blur Fix */}
       <div className="absolute inset-0 z-0">
-        <Scene />
+        {!analysisResult && <Scene />}
       </div>
       
       {/* UI Overlay */}
