@@ -97,3 +97,14 @@ def resolve_issue(issue_id: int, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_issue)
     return db_issue
+
+@router.patch("/{issue_id}/reopen", response_model=IssueResponse)
+def reopen_issue(issue_id: int, db: Session = Depends(get_db)):
+    db_issue = db.query(Issue).filter(Issue.id == issue_id).first()
+    if not db_issue:
+        raise HTTPException(status_code=404, detail="Issue not found")
+    
+    db_issue.status = "Open"
+    db.commit()
+    db.refresh(db_issue)
+    return db_issue

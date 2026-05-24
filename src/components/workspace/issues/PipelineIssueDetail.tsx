@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MessageSquare, Send, Loader2, CheckCircle2, Trash2, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Send, Loader2, CheckCircle2, Trash2, CheckCircle, RotateCcw } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useWorkspaceStore } from '@/store/workspace.store';
-import { createOpinion, fetchIssueDetails, deleteIssue, resolveIssue } from '@/services/workspace.service';
+import { createOpinion, fetchIssueDetails, deleteIssue, resolveIssue, reopenIssue } from '@/services/workspace.service';
 import ResultsView from '@/components/workspace/ResultsView';
 
 export default function PipelineIssueDetail() {
@@ -20,6 +20,7 @@ export default function PipelineIssueDetail() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isResolving, setIsResolving] = useState(false);
+  const [isReopening, setIsReopening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const currentIssueIdRef = React.useRef(selectedIssue?.id || null);
 
@@ -77,6 +78,20 @@ export default function PipelineIssueDetail() {
       setError("Failed to resolve issue.");
     } finally {
       setIsResolving(false);
+    }
+  };
+
+  const handleReopen = async () => {
+    if (!selectedIssue) return;
+    setIsReopening(true);
+    try {
+      await reopenIssue(selectedIssue.id);
+      await refreshDetails();
+    } catch (err) {
+      console.error("Failed to reopen issue", err);
+      setError("Failed to reopen issue.");
+    } finally {
+      setIsReopening(false);
     }
   };
 
@@ -152,7 +167,7 @@ export default function PipelineIssueDetail() {
           {/* Actions */}
           {currentUserName === selectedIssue.author && (
             <div className="flex items-center gap-2 flex-shrink-0">
-              {selectedIssue.status !== 'Resolved' && (
+              {selectedIssue.status !== 'Resolved' ? (
                 <button
                   onClick={handleResolve}
                   disabled={isResolving}
@@ -160,6 +175,15 @@ export default function PipelineIssueDetail() {
                   title="Resolve Issue"
                 >
                   {isResolving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                </button>
+              ) : (
+                <button
+                  onClick={handleReopen}
+                  disabled={isReopening}
+                  className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                  title="Reopen Issue"
+                >
+                  {isReopening ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
                 </button>
               )}
               <button

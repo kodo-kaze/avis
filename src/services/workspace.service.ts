@@ -69,6 +69,11 @@ export const resolveIssue = async (issueId: string) => {
   return response.data;
 };
 
+export const reopenIssue = async (issueId: string) => {
+  const response = await axios.patch(`${API_BASE}/issues/${issueId}/reopen`);
+  return response.data;
+};
+
 export const deleteIssue = async (issueId: string) => {
   const response = await axios.delete(`${API_BASE}/issues/${issueId}`);
   return response.data;
