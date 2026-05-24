@@ -84,6 +84,11 @@ export default function PipelineIssueDetail() {
 
   if (!selectedIssue) return null;
 
+  const currentUserName = user?.fullName || user?.username || 'Anonymous User';
+  const hasAlreadyContributed = selectedIssue.opinions?.some(
+    (opinion) => opinion.author === currentUserName
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -151,25 +156,33 @@ export default function PipelineIssueDetail() {
               Opinions ({selectedIssue.opinions?.length || 0})
             </h4>
 
-            <form onSubmit={handleSubmitOpinion} className="relative">
-              <textarea
-                value={opinionText}
-                onChange={(e) => setOpinionText(e.target.value)}
-                placeholder="Share perspective..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all resize-none h-20"
-              />
-              <div className="flex items-center justify-between mt-1 px-1">
-                {error && <span className="text-[9px] text-red-400 font-medium">{error}</span>}
-                <div /> {/* Spacer */}
+            {hasAlreadyContributed ? (
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center border-dashed">
+                <p className="text-[10px] text-white/30 font-mono uppercase tracking-widest leading-relaxed">
+                  Contribution submitted.
+                </p>
               </div>
-              <button
-                type="submit"
-                disabled={isSubmitting || !opinionText.trim()}
-                className="absolute bottom-2 right-2 p-1.5 bg-white text-black rounded-lg disabled:opacity-50"
-              >
-                {isSubmitting ? <Loader2 className="animate-spin" size={14} /> : <Send size={14} />}
-              </button>
-            </form>
+            ) : (
+              <form onSubmit={handleSubmitOpinion} className="relative">
+                <textarea
+                  value={opinionText}
+                  onChange={(e) => setOpinionText(e.target.value)}
+                  placeholder="Share perspective..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all resize-none h-20"
+                />
+                <div className="flex items-center justify-between mt-1 px-1">
+                  {error && <span className="text-[9px] text-red-400 font-medium">{error}</span>}
+                  <div /> {/* Spacer */}
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !opinionText.trim()}
+                  className="absolute bottom-2 right-2 p-1.5 bg-white text-black rounded-lg disabled:opacity-50"
+                >
+                  {isSubmitting ? <Loader2 className="animate-spin" size={14} /> : <Send size={14} />}
+                </button>
+              </form>
+            )}
 
             <div className="space-y-3">
               {selectedIssue.opinions?.map((opinion) => (

@@ -88,6 +88,11 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
 
   if (!selectedIssue) return null;
 
+  const currentUserName = user?.fullName || user?.username || 'Anonymous User';
+  const hasAlreadyContributed = selectedIssue.opinions?.some(
+    (opinion) => opinion.author === currentUserName
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -169,25 +174,33 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
             </div>
 
             {/* Opinion Input */}
-            <form onSubmit={handleSubmitOpinion} className="relative group">
-              <textarea
-                value={opinionText}
-                onChange={(e) => setOpinionText(e.target.value)}
-                placeholder="Share your perspective on this issue..."
-                className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all resize-none font-medium h-32"
-              />
-              <div className="absolute bottom-4 right-4 flex items-center gap-4">
-                {error && <span className="text-xs text-red-400 font-medium">{error}</span>}
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !opinionText.trim()}
-                  className="bg-white text-black px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl"
-                >
-                  {isSubmitting ? <Loader2 className="animate-spin" size={14} /> : <Send size={14} />}
-                  Submit Opinion
-                </button>
+            {hasAlreadyContributed ? (
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center border-dashed">
+                <p className="text-white/30 text-xs font-mono uppercase tracking-[0.2em]">
+                  You have already shared your perspective on this issue.
+                </p>
               </div>
-            </form>
+            ) : (
+              <form onSubmit={handleSubmitOpinion} className="relative group">
+                <textarea
+                  value={opinionText}
+                  onChange={(e) => setOpinionText(e.target.value)}
+                  placeholder="Share your perspective on this issue..."
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all resize-none font-medium h-32"
+                />
+                <div className="absolute bottom-4 right-4 flex items-center gap-4">
+                  {error && <span className="text-xs text-red-400 font-medium">{error}</span>}
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !opinionText.trim()}
+                    className="bg-white text-black px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl"
+                  >
+                    {isSubmitting ? <Loader2 className="animate-spin" size={14} /> : <Send size={14} />}
+                    Submit Opinion
+                  </button>
+                </div>
+              </form>
+            )}
 
             {/* Opinion List */}
             <div className="space-y-4">
