@@ -1,4 +1,4 @@
-import pandas as pd
+import csv
 import json
 import io
 from typing import List
@@ -6,25 +6,32 @@ from typing import List
 def parse_file_to_comments(file_content: bytes, filename: str) -> List[str]:
     """
     Robustly parses CSV, JSON, or TXT into a list of strings (comments).
+    Uses built-in modules to minimize dependency size.
     """
     filename_lower = filename.lower()
     comments = []
     
     try:
         if filename_lower.endswith(".csv"):
-            # Attempt to read CSV
-            df = pd.read_csv(io.BytesIO(file_content))
+            # Use built-in csv module
+            stream = io.StringIO(file_content.decode("utf-8"))
+            reader = csv.DictReader(stream)
             
-            # Detect likely comment columns (heuristic)
-            comment_cols = [col for col in df.columns if 'comment' in col.lower() or 'feedback' in col.lower() or 'text' in col.lower()]
+            # Identify columns
+            headers = reader.fieldnames or []
+            comment_cols = [col for col in headers if 'comment' in col.lower() or 'feedback' in col.lower() or 'text' in col.lower()]
             
             if comment_cols:
                 col = comment_cols[0]
-            else:
-                # Fallback to the first string column that has long average length
-                col = df.columns[0] # Very naive fallback
-                
-            comments = df[col].dropna().astype(str).tolist()
+                for row in reader:
+                    if row.get(col):
+                        comments.append(str(row[col]))
+            elif headers:
+                # Fallback to the first column
+                col = headers[0]
+                for row in reader:
+                    if row.get(col):
+                        comments.append(str(row[col]))
 
         elif filename_lower.endswith(".json"):
             data = json.loads(file_content.decode("utf-8"))

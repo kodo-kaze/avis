@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Scene } from "@/components/ui/Marble";
+import dynamic from 'next/dynamic';
 import AnalysisForm from "@/components/workspace/AnalysisForm";
 import ResultsView from "@/components/workspace/ResultsView";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,6 +10,10 @@ import { UserButton } from '@clerk/nextjs';
 import { LayoutDashboard, ArrowLeft } from 'lucide-react';
 import { AnalysisResult } from '@/lib/types';
 import { useWorkspace } from '@/hooks/useWorkspace';
+
+const Scene = dynamic(() => import("@/components/ui/Marble").then((mod) => mod.Scene), {
+  ssr: false,
+});
 
 export default function WorkspaceClient() {
   const {

@@ -14,7 +14,8 @@ def generate_wordcloud(comments: List[str]) -> Optional[str]:
     if not comments:
         return None
 
-    combined_text = " ".join(comments)
+    # Limit to top 100 comments to ensure fast generation
+    combined_text = " ".join(comments[:100])
     
     try:
         wordcloud = WordCloud(

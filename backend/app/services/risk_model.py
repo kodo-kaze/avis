@@ -1,47 +1,65 @@
-import xgboost as xgb
-import pandas as pd
 import numpy as np
 
 class StakeholderRiskModel:
     def __init__(self):
-        # Initialize a basic XGBoost Classifier for tabular data predictions
-        self.model = xgb.XGBClassifier(
-            max_depth=3,
-            learning_rate=0.1,
-            n_estimators=100,
-            use_label_encoder=False,
-            eval_metric='logloss'
-        )
+        """
+        A lightweight Logistic Regression model implemented with NumPy.
+        Provides robust predictions while staying within Vercel's size limits.
+        """
+        # Features: [Sentiment (0-1), Response_Time (days), Frequency (count)]
+        self.weights = np.array([-2.5, 0.4, -0.6]) # Initial weights reflecting typical churn logic
+        self.bias = 0.5
         self._is_trained = False
 
+    def sigmoid(self, z):
+        """Standard sigmoid activation function."""
+        return 1 / (1 + np.exp(-np.clip(z, -250, 250)))
+
     def train_dummy_model(self):
-        """Trains on sample stakeholder data for hackathon demonstration."""
-        # Features: [Sentiment_Score, Response_Time_Days, Interaction_Frequency]
-        X = pd.DataFrame({
-            'sentiment': [0.1, 0.9, 0.2, 0.8, 0.4, 0.7],
-            'response_time': [5, 1, 4, 1, 3, 2],
-            'frequency': [1, 10, 2, 8, 4, 6]
-        })
-        # Target: 1 (High Risk of Churn), 0 (Low Risk)
-        y = np.array([1, 0, 1, 0, 1, 0])
+        """
+        Trains the model using Gradient Descent on sample stakeholder data.
+        Demonstrates the model's ability to learn from data without scikit-learn.
+        """
+        # Training Data: [Sentiment, ResponseTime, Frequency]
+        # High Risk (1): Low sentiment, high response time, low frequency
+        # Low Risk (0): High sentiment, low response time, high frequency
+        X = np.array([
+            [0.1, 10, 1], [0.2, 8, 2], [0.4, 5, 3], # Likely Churn
+            [0.9, 1, 10], [0.8, 2, 8], [0.7, 3, 6]  # Likely Loyal
+        ])
+        y = np.array([1, 1, 1, 0, 0, 0])
+
+        # Hyperparameters
+        lr = 0.1
+        epochs = 500
         
-        self.model.fit(X, y)
+        # Simple Gradient Descent
+        for _ in range(epochs):
+            z = np.dot(X, self.weights) + self.bias
+            predictions = self.sigmoid(z)
+            
+            # Gradients
+            dw = (1 / len(y)) * np.dot(X.T, (predictions - y))
+            db = (1 / len(y)) * np.sum(predictions - y)
+            
+            # Update
+            self.weights -= lr * dw
+            self.bias -= lr * db
+
         self._is_trained = True
-        return "Model trained successfully."
+        return "Logistic Regression trained successfully."
 
     def predict_risk(self, sentiment: float, response_time: int, frequency: int) -> float:
-        """Predicts the probability of stakeholder churn."""
+        """
+        Predicts the probability of stakeholder churn using the logistic function.
+        """
         if not self._is_trained:
             self.train_dummy_model()
             
-        features = pd.DataFrame({
-            'sentiment': [sentiment],
-            'response_time': [response_time],
-            'frequency': [frequency]
-        })
+        x = np.array([sentiment, float(response_time), float(frequency)])
+        z = np.dot(x, self.weights) + self.bias
+        probability = self.sigmoid(z)
         
-        # Return probability of class 1 (High Risk)
-        probability = self.model.predict_proba(features)[0][1]
         return float(probability)
 
 # Initialize the service
