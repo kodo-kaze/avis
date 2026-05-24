@@ -44,8 +44,9 @@ class IssueService:
         db.commit()
         db.refresh(db_issue)
         
-        # Active Invalidation: Clear public cache since a new issue was added
+        # Active Invalidation: Clear both public and user-specific cache
         cache.invalidate("issues:public:all")
+        cache.invalidate(f"issues:user:{issue.author}")
         return db_issue
 
     @staticmethod
@@ -77,7 +78,21 @@ class IssueService:
 
     @staticmethod
     def get_my_issues(author: str, db: Session) -> List[Issue]:
-        return db.query(Issue).filter(Issue.author == author).order_by(Issue.created_at.desc()).all()
+        cache_key = f"issues:user:{author}"
+        
+        # 1. Cache-Hit Step
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return cached_data
+
+        # 2. Cache-Miss Step
+        issues = db.query(Issue).filter(Issue.author == author).order_by(Issue.created_at.desc()).all()
+        
+        # 3. Populate User Cache
+        serialized_issues = [IssueResponse.model_validate(i).model_dump(mode='json') for i in issues]
+        cache.set(cache_key, serialized_issues, ttl=3600)
+        
+        return issues
 
     @staticmethod
     async def add_opinion(issue_id: int, opinion: OpinionCreate, db: Session) -> Opinion:
@@ -94,8 +109,9 @@ class IssueService:
         db.commit()
         db.refresh(db_opinion)
         
-        # Active Invalidation: Opinions change the 'analysis_result' or opinion list
+        # Active Invalidation: Clear relevant caches
         cache.invalidate("issues:public:all")
+        cache.invalidate(f"issues:user:{db_issue.author}")
         
         # Check threshold (3)
         opinions_count = db.query(Opinion).filter(Opinion.issue_id == issue_id).count()
@@ -110,10 +126,12 @@ class IssueService:
         db_issue = db.query(Issue).filter(Issue.id == issue_id).first()
         if not db_issue:
             raise HTTPException(status_code=404, detail="Issue not found")
+        author = db_issue.author
         db.delete(db_issue)
         db.commit()
         # Active Invalidation
         cache.invalidate("issues:public:all")
+        cache.invalidate(f"issues:user:{author}")
 
     @staticmethod
     def resolve_issue(issue_id: int, db: Session) -> Issue:
@@ -125,6 +143,7 @@ class IssueService:
         db.refresh(db_issue)
         # Active Invalidation
         cache.invalidate("issues:public:all")
+        cache.invalidate(f"issues:user:{db_issue.author}")
         return db_issue
 
     @staticmethod
@@ -137,4 +156,5 @@ class IssueService:
         db.refresh(db_issue)
         # Active Invalidation
         cache.invalidate("issues:public:all")
+        cache.invalidate(f"issues:user:{db_issue.author}")
         return db_issue

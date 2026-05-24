@@ -28,7 +28,7 @@
 *   **Privacy Control**: Toggle between **Public** and **Private** concerns with one click.
 *   **Deep Linking**: Direct shareable links for private issues, ensuring controlled access to sensitive discussions.
 *   **Lifecycle Management**: Seamless transition between *Open*, *Resolved*, and *Reopened* states.
-*   **High-Performance Caching**: Optimized data retrieval via **Upstash Redis (REST)** using a Cache-Aside pattern with Active Invalidation for sub-50ms response times.
+*   **High-Performance Caching**: Optimized data retrieval via **Upstash Redis (REST)** using a Cache-Aside pattern. Implements **Global Public Caching** for community issues and **User-Specific Caching** for personal pipelines to ensure sub-50ms latency with absolute data consistency.
 
 ### 💎 Immersive UI/UX
 *   **Glassmorphism Architecture**: A premium dark‑mode interface featuring obsidian blurs and high‑refraction cards.
