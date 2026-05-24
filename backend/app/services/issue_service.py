@@ -2,7 +2,8 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.models.issue import Issue
 from app.models.opinion import Opinion
-from app.schemas.issue import IssueCreate, OpinionCreate
+from app.config.redis import cache
+from app.schemas.issue import IssueCreate, OpinionCreate, IssueResponse
 from app.services.orchestrator import process_feedback
 from app.utils.preprocessing import preprocess_comments
 from typing import List
@@ -42,11 +43,30 @@ class IssueService:
         db.add(db_issue)
         db.commit()
         db.refresh(db_issue)
+        
+        # Active Invalidation: Clear public cache since a new issue was added
+        cache.invalidate("issues:public:all")
         return db_issue
 
     @staticmethod
     def get_issues(db: Session) -> List[Issue]:
-        return db.query(Issue).filter(Issue.is_private == False).order_by(Issue.created_at.desc()).all()
+        cache_key = "issues:public:all"
+        
+        # 1. Cache-Hit Step: Try serving from Redis first
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return cached_data
+
+        # 2. Cache-Miss Step: Fetch from DB on miss or Redis failure
+        issues = db.query(Issue).filter(Issue.is_private == False).order_by(Issue.created_at.desc()).all()
+        
+        # Serialize SQLAlchemy objects using Pydantic for cache storage
+        serialized_issues = [IssueResponse.model_validate(i).model_dump(mode='json') for i in issues]
+        
+        # 3. Expiration Safety Net: Store in Redis for 1 hour
+        cache.set(cache_key, serialized_issues, ttl=3600)
+        
+        return issues
 
     @staticmethod
     def get_issue(issue_id: int, db: Session) -> Issue:
@@ -74,6 +94,9 @@ class IssueService:
         db.commit()
         db.refresh(db_opinion)
         
+        # Active Invalidation: Opinions change the 'analysis_result' or opinion list
+        cache.invalidate("issues:public:all")
+        
         # Check threshold (3)
         opinions_count = db.query(Opinion).filter(Opinion.issue_id == issue_id).count()
         if opinions_count >= 3:
@@ -89,6 +112,8 @@ class IssueService:
             raise HTTPException(status_code=404, detail="Issue not found")
         db.delete(db_issue)
         db.commit()
+        # Active Invalidation
+        cache.invalidate("issues:public:all")
 
     @staticmethod
     def resolve_issue(issue_id: int, db: Session) -> Issue:
@@ -98,6 +123,8 @@ class IssueService:
         db_issue.status = "Resolved"
         db.commit()
         db.refresh(db_issue)
+        # Active Invalidation
+        cache.invalidate("issues:public:all")
         return db_issue
 
     @staticmethod
@@ -108,4 +135,6 @@ class IssueService:
         db_issue.status = "Open"
         db.commit()
         db.refresh(db_issue)
+        # Active Invalidation
+        cache.invalidate("issues:public:all")
         return db_issue
