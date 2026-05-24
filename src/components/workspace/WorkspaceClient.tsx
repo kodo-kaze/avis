@@ -39,7 +39,7 @@ export default function WorkspaceClient() {
 
   const handlePageChange = (page: string) => {
     setActivePage(page);
-    setSelectedIssue(null);
+    setSelectedIssue(null, null);
   };
 
   const handleAnalysisComplete = (data: AnalysisResult) => {

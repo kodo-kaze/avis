@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, User, Clock, MessageSquare, Send, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, User, Clock, MessageSquare, Send, Loader2 } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useWorkspaceStore } from '@/store/workspace.store';
 import { createOpinion, fetchIssueDetails } from '@/services/workspace.service';
-import ResultsView from '@/components/workspace/ResultsView';
 
 interface IssueDetailProps {
   onBack: () => void;
@@ -21,13 +20,25 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
   const [opinionText, setOpinionText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const currentIssueIdRef = React.useRef(selectedIssue.id);
+
+  // Keep ref in sync with selectedIssue.id
+  useEffect(() => {
+    if (selectedIssue) {
+      currentIssueIdRef.current = selectedIssue.id;
+    }
+  }, [selectedIssue?.id]);
 
   const refreshDetails = useCallback(async () => {
     if (!selectedIssue) return;
+    const targetId = selectedIssue.id;
+
     try {
-      const data = await fetchIssueDetails(selectedIssue.id);
-      // Only update if we still have a selected issue (prevents race condition/loop when going back)
-      if (useWorkspaceStore.getState().selectedIssue) {
+      const data = await fetchIssueDetails(targetId);
+      // Only update if we are still looking at the SAME issue we requested details for
+      // AND the store still has this issue selected (hasn't been cleared by 'back')
+      const currentStoredIssue = useWorkspaceStore.getState().selectedIssue;
+      if (currentIssueIdRef.current === targetId && currentStoredIssue?.id === targetId) {
         setSelectedIssue({
           id: data.id.toString(),
           title: data.title,
@@ -107,9 +118,9 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Details & Opinions */}
-        <div className="lg:col-span-2 space-y-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Main Content & Opinions */}
+        <div className="space-y-8">
           
           {/* Main Content Card */}
           <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 space-y-6">
@@ -216,79 +227,6 @@ export default function IssueDetail({ onBack }: IssueDetailProps) {
             </div>
           </div>
         </div>
-
-        {/* Right Column: AI Analysis */}
-        {(user?.fullName === selectedIssue.author || user?.username === selectedIssue.author) && selectionSource === 'pipeline' ? (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                <CheckCircle2 size={20} className="text-emerald-400" />
-              </div>
-              <h3 className="text-xl font-black uppercase tracking-tight">AI Consensus</h3>
-            </div>
-
-            <div className="sticky top-8">
-              {selectedIssue.analysisResult ? (
-                <ResultsView
-                  data={selectedIssue.analysisResult}
-                  onReset={() => {}}
-                  hideHeader={true}
-                />
-              ) : (
-                <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 text-center space-y-6">
-                  <div className="relative mx-auto w-20 h-20">
-                    <div className="absolute inset-0 bg-white/5 rounded-full animate-ping" />
-                    <div className="relative flex items-center justify-center w-20 h-20 bg-white/10 rounded-full border border-white/10">
-                      <Loader2 className="animate-spin text-white/40" size={32} />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <p className="text-white font-bold uppercase tracking-widest text-xs">Waiting for Threshold</p>
-                    <p className="text-white/30 text-[10px] font-mono uppercase leading-relaxed">
-                      AI Analysis triggers automatically after <span className="text-white/60">3 stakeholder opinions</span>.
-                    </p>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-[9px] font-mono text-white/40 uppercase">
-                      <span>Consensus Progress</span>
-                      <span>{selectedIssue.opinions?.length || 0} / 3</span>
-                    </div>
-                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-white/40"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(((selectedIssue.opinions?.length || 0) / 3) * 100, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/5 rounded-lg border border-white/10">
-                <AlertCircle size={20} className="text-white/40" />
-              </div>
-              <h3 className="text-xl font-black uppercase tracking-tight text-white/40">Intelligence</h3>
-            </div>
-            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 text-center space-y-6">
-              <div className="flex items-center justify-center w-20 h-20 bg-white/5 rounded-full border border-white/10 mx-auto">
-                <AlertCircle className="text-white/20" size={32} />
-              </div>
-              <div className="space-y-2">
-                <p className="text-white font-bold uppercase tracking-widest text-xs">Private Intelligence</p>
-                <p className="text-white/30 text-[10px] font-mono uppercase leading-relaxed">
-                  Detailed AI analysis results are exclusively visible to the <span className="text-white/60">Issue Author</span> when accessed via <span className="text-white/60">Pipeline Concerns</span>.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </motion.div>
   );

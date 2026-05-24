@@ -15,27 +15,43 @@ export default function PipelineIssueDetail() {
   
   const [opinionText, setOpinionText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const currentIssueIdRef = React.useRef(selectedIssue.id);
+
+  // Keep ref in sync with selectedIssue.id
+  useEffect(() => {
+    if (selectedIssue) {
+      currentIssueIdRef.current = selectedIssue.id;
+    }
+  }, [selectedIssue?.id]);
 
   const refreshDetails = useCallback(async () => {
     if (!selectedIssue) return;
+    const targetId = selectedIssue.id;
+
     try {
-      const data = await fetchIssueDetails(selectedIssue.id);
-      setSelectedIssue({
-        id: data.id.toString(),
-        title: data.title,
-        description: data.description,
-        status: data.status,
-        createdAt: data.created_at,
-        author: data.author,
-        analysisResult: data.analysis_result,
-        opinions: data.opinions.map((o: { id: number | string; issue_id: number | string; text: string; author: string; created_at: string }) => ({
-          id: o.id.toString(),
-          issueId: o.issue_id.toString(),
-          text: o.text,
-          author: o.author,
-          createdAt: o.created_at
-        }))
-      }, 'pipeline');
+      const data = await fetchIssueDetails(targetId);
+      // Only update if we are still looking at the SAME issue we requested details for
+      // AND the store still has this issue selected (hasn't been cleared by 'back')
+      const currentStoredIssue = useWorkspaceStore.getState().selectedIssue;
+      if (currentIssueIdRef.current === targetId && currentStoredIssue?.id === targetId) {
+        setSelectedIssue({
+          id: data.id.toString(),
+          title: data.title,
+          description: data.description,
+          status: data.status,
+          createdAt: data.created_at,
+          author: data.author,
+          analysisResult: data.analysis_result,
+          opinions: data.opinions.map((o: { id: number | string; issue_id: number | string; text: string; author: string; created_at: string }) => ({
+            id: o.id.toString(),
+            issueId: o.issue_id.toString(),
+            text: o.text,
+            author: o.author,
+            createdAt: o.created_at
+          }))
+        }, 'pipeline');
+      }
     } catch (err) {
       console.error("Failed to refresh issue details", err);
     }
@@ -60,7 +76,7 @@ export default function PipelineIssueDetail() {
       setOpinionText('');
       await refreshDetails();
     } catch {
-      console.error('Failed to submit opinion.');
+      setError('Failed to submit opinion.');
     } finally {
       setIsSubmitting(false);
     }
