@@ -117,7 +117,7 @@ export default function PipelineIssueDetail() {
           </div>
         </div>
 
-        <div className="flex-grow overflow-y-auto pr-2 space-y-8 custom-scrollbar">
+        <div className="flex-grow overflow-y-auto pr-2 space-y-8">
           {/* AI Analysis Section */}
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-3">
